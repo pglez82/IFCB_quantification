@@ -8,7 +8,7 @@ buildBaseData<-function()
 {
   library(plyr)
   #Put here the base directory where you have the data
-  DATA_DIR<-"/home/pablo/Escritorio/PLANKTON/data"
+  DATA_DIR<-"../data"
   #list all png files
   files <- list.files(path=DATA_DIR, pattern="*.png", full.names=T, recursive=TRUE)
   print(paste("Read files:",length(files),". Processing..."))
@@ -73,14 +73,16 @@ downloadFeatures<-function()
 #IFCB_FEATURES.RData features for the 3.5M rows that we have annotated.
 combineFeatures<-function() 
 {
-  #Load libraries
+  #Load libraries for parallelizing
   library(doMC)
   library(foreach)
   library(itertools)
+  #For the fast reading of csv files
+  library(data.table)
   
-  registerDoMC(cores = 10) 
+  registerDoMC(cores = 12) 
   
-  logFile = "combineFeatures.txt"
+  logFile = "log_combineFeatures.txt"
   cat(file = logFile ,append = FALSE,sep="\n","Starting process")
   
   FEATURES_DIR<-"sample_features/"
@@ -91,11 +93,11 @@ combineFeatures<-function()
   ifcb_sample_size<-foreach (i=1:nrow(ifcb_samples),.combine = 'rbind')%dopar%
   {
     fileName<-paste(ifcb_samples$Sample[i],"features.csv",sep = "_")
-    features<-read.table(file = paste(FEATURES_DIR,fileName,sep = ''),header = TRUE,sep=',')
+    features<-fread(paste(FEATURES_DIR,fileName,sep = ''))
     #Maybe we dont have all the images corresponding for all rows in features
     s<-ifcb[ifcb$Sample==ifcb_samples$Sample[i],'roi_number']
     cat(file = logFile ,append = TRUE,sep="\n",paste("Finnished file",i))    
-    cbind(Sample=ifcb_samples$Sample[i],total.size=nrow(features),labeled.size=length(s))
+    cbind(Sample=as.character(ifcb_samples$Sample[i]),total.size=nrow(features),labeled.size=length(s))
   }
   saveRDS(data.frame(ifcb_sample_size),file = 'IFCB_SAMPLE_SIZE.RData')
   cat(file = logFile ,append = TRUE,sep="\n","Saving results, starting second part...")
@@ -103,22 +105,19 @@ combineFeatures<-function()
   ifcb_features<-foreach (i=1:nrow(ifcb_samples),.combine = 'rbind')%dopar%
   {
     fileName<-paste(ifcb_samples$Sample[i],"features.csv",sep = "_")
-    features<-read.table(file = paste(FEATURES_DIR,fileName,sep = ''),header = TRUE,sep=',')
+    features<-fread(paste(FEATURES_DIR,fileName,sep = ''))
+    #We have to erase this feature as there some files that have it and others that don't
+    if ("summedBiovolume" %in% colnames(features)) {features[ ,summedBiovolume:=NULL]}
+
     #Maybe we dont have all the images corresponding for all rows in features (i have asked by email why...)
     s<-ifcb[ifcb$Sample==ifcb_samples$Sample[i],'roi_number']
     cat(file = logFile ,append = TRUE,sep="\n",paste("Finnished file",i))
-    cbind(Sample=ifcb_samples$Sample[i],features[features$roi_number %in% s,])
+    cbind(Sample=as.character(ifcb_samples$Sample[i]),features[features$roi_number %in% s,])
   }
   
   rownames(ifcb_features)<-NULL
+  cat(file = logFile ,append = TRUE,sep="\n",paste("Saving",nrow(ifcb_features)))
   saveRDS(ifcb_features,file = 'IFCB_FEATURES.RData')
-}
-
-
-computeAutoClass<-function()
-{
-  library(plyr)
-  
 }
 
 showStatistics<-function(ifcb)
