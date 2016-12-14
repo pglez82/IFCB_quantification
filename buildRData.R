@@ -66,23 +66,23 @@ downloadFeatures<-function()
   }
 }
 
-#This function uses the csv files downloaded by downloadFeatures. The goal is to get only the 3.5M rows that we need
-#and forget about the rest. This function produces two results:
-#
-#IFCB_SAMPLE_SIZE.RData actual sample size vs classified sample size. Useful to know which samples are complete and which are not
-#IFCB_FEATURES.RData features for the 3.5M rows that we have annotated.
-combineFeatures<-function() 
+#Function to compute the sample size as we get it from the IFCB Dashboard (http://ifcb-data.whoi.edu/mvco/)
+#Result: a file with 3 columns: the first is the sample name, the second the actual size and the third
+#        the annotated file size.
+#Update: I got from Emily an email with the fully annotated files (FULLY_ANNOTATED.RData). If we match
+#        this file with the number of examples computed by this function we get that sometimes
+#        there are a few examples excluded. This examples should be put in the others category
+computeSampleSizes<-function()
 {
   #Load libraries for parallelizing
   library(doMC)
   library(foreach)
   library(itertools)
-  #For the fast reading of csv files
-  library(data.table)
   
   registerDoMC(cores = 12) 
   
-  logFile = "log_combineFeatures.txt"
+  #Log file
+  logFile = "log_computeSampleSizes.txt"
   cat(file = logFile ,append = FALSE,sep="\n","Starting process")
   
   FEATURES_DIR<-"sample_features/"
@@ -93,33 +93,58 @@ combineFeatures<-function()
   ifcb_sample_size<-foreach (i=1:nrow(ifcb_samples),.combine = 'rbind')%dopar%
   {
     fileName<-paste(ifcb_samples$Sample[i],"features.csv",sep = "_")
-    features<-fread(paste(FEATURES_DIR,fileName,sep = ''))
+    features<-read.table(paste(FEATURES_DIR,fileName,sep = ''),sep=",",header=TRUE)
     #Maybe we dont have all the images corresponding for all rows in features
     s<-ifcb[ifcb$Sample==ifcb_samples$Sample[i],'roi_number']
     cat(file = logFile ,append = TRUE,sep="\n",paste("Finnished file",i))    
-    cbind(Sample=as.character(ifcb_samples$Sample[i]),total.size=nrow(features),labeled.size=length(s))
+    data.frame(Sample=as.character(ifcb_samples$Sample[i]),total.size=nrow(features),labeled.size=length(s))
   }
   saveRDS(data.frame(ifcb_sample_size),file = 'IFCB_SAMPLE_SIZE.RData')
   cat(file = logFile ,append = TRUE,sep="\n","Saving results, starting second part...")
-  
-  ifcb_features<-foreach (i=1:nrow(ifcb_samples),.combine = 'rbind')%dopar%
-  {
-    fileName<-paste(ifcb_samples$Sample[i],"features.csv",sep = "_")
-    features<-fread(paste(FEATURES_DIR,fileName,sep = ''))
-    #We have to erase this feature as there some files that have it and others that don't
-    if ("summedBiovolume" %in% colnames(features)) {features[ ,summedBiovolume:=NULL]}
+}
 
-    #Maybe we dont have all the images corresponding for all rows in features (i have asked by email why...)
-    s<-ifcb[ifcb$Sample==ifcb_samples$Sample[i],'roi_number']
+#This function is used to compute a mega file with all the examples from the fully annotated
+#samples list. The result would be a file with 237 columns. The identifier of each example will be
+#the sample name and the roi number.
+#Note that there would be a few examples not present in IFCB.RData. This examples should be processed
+#after and put into the 'other' category.
+combineFeatures<-function() 
+{
+  #Load libraries for parallelizing
+  library(doMC)
+  library(foreach)
+  library(itertools)
+  
+  registerDoMC(cores = 12) 
+  
+  logFile = "log_combineFeatures.txt"
+  cat(file = logFile ,append = FALSE,sep="\n","Starting process")
+  
+  FEATURES_DIR<-"sample_features/"
+  ifcb_fully_annotated<-readRDS('FULLY_ANNOTATED.RData')
+  
+  ifcb_features<-foreach (i=1:nrow(ifcb_fully_annotated),.combine = 'rbind')%dopar%
+  {
+    fileName<-paste(ifcb_fully_annotated$Sample[i],"features.csv",sep = "_")
+    features<-read.table(paste(FEATURES_DIR,fileName,sep = ''),sep=",",header=TRUE)
+    #We have to erase this feature as there some files that have it and others that don't
+    features<-features[,!names(features) %in% "summedBiovolume"]
+
     cat(file = logFile ,append = TRUE,sep="\n",paste("Finnished file",i))
-    cbind(Sample=as.character(ifcb_samples$Sample[i]),features[features$roi_number %in% s,])
+    data.frame(Sample=as.character(ifcb_fully_annotated$Sample[i]),features)
   }
   
-  rownames(ifcb_features)<-NULL
   cat(file = logFile ,append = TRUE,sep="\n",paste("Saving",nrow(ifcb_features)))
   saveRDS(ifcb_features,file = 'IFCB_FEATURES.RData')
 }
 
+#This function add the examples that are present in the dashboard but not in the annotated files.
+#All this examples belong to the 'other' category.
+addMissingExamples<-function()
+{
+  
+}
+  
 showStatistics<-function(ifcb)
 {
   library(plyr)
