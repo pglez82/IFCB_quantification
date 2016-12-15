@@ -107,7 +107,7 @@ computeSampleSizes<-function()
 #samples list. The result would be a file with 237 columns. The identifier of each example will be
 #the sample name and the roi number.
 #Note that there would be a few examples not present in IFCB.RData. This examples should be processed
-#after and put into the 'other' category.
+#after and put into the 'other' category. #see addMissingExamples()
 combineFeatures<-function() 
 {
   #Load libraries for parallelizing
@@ -142,7 +142,21 @@ combineFeatures<-function()
 #All this examples belong to the 'other' category.
 addMissingExamples<-function()
 {
+  #load the IFCB annotated data
+  IFCB<-readRDS('IFCB.RData')
+  #load the features
+  IFCB_FEATURES<-readRDS('IFCB_FEATURES.RData')
   
+  #We have to find examples in the file IFCB_FEATURES that are not in IFCB. Once, found
+  #we should add them to the IFCB under the others category
+  ifcb_ids<-paste(IFCB$Sample,IFCB$roi_number,sep="_")
+  ifcb_features_ids<-paste(IFCB_FEATURES$Sample,IFCB_FEATURES$roi_number,sep="_")
+  
+  new_examples<-IFCB_FEATURES[!(ifcb_features_ids %in% ifcb_ids),c("Sample","roi_number")]
+  new_examples$OriginalClass<-'Other'
+  new_examples$AutoClass<-'na'
+  
+  IFCB<-rbind(IFCB,new_examples)
 }
   
 showStatistics<-function(ifcb)
