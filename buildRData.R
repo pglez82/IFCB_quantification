@@ -107,7 +107,7 @@ computeSampleSizes<-function()
 #samples list. The result would be a file with 237 columns. The identifier of each example will be
 #the sample name and the roi number.
 #Note that there would be a few examples not present in IFCB.RData. This examples should be processed
-#after and put into the 'other' category. #see addMissingExamples()
+#after and put into the 'other' category. #see updateIFCBFile()
 combineFeatures<-function() 
 {
   #Load libraries for parallelizing
@@ -138,14 +138,22 @@ combineFeatures<-function()
   saveRDS(ifcb_features,file = 'IFCB_FEATURES.RData')
 }
 
-#This function add the examples that are present in the dashboard but not in the annotated files.
-#All this examples belong to the 'other' category.
-addMissingExamples<-function()
+#At this point, after calling combineFeatures, we have the final list of examples.
+#The problem is that IFCB file does not have the same number of examples. There are two possible cases:
+# 1 - Examples that are in IFCB but not in IFCB_FEATURES. This examples are from uncomplete files
+#     and should be deleted.
+# 2 - Examples that are in IFCB_FEATURES but not in IFCB. This examples are examples discarded
+#     when WHOI people were annotating. They should be placed in the 'Other' category.
+updateIFCBFile<-function()
 {
   #load the IFCB annotated data
   IFCB<-readRDS('IFCB.RData')
   #load the features
   IFCB_FEATURES<-readRDS('IFCB_FEATURES.RData')
+  FULLY_ANNOTATED<-readRDS('FULLY_ANNOTATED.RData')
+  
+  #Delete the examples that do not belong from fully annotated samples
+  IFCB<-IFCB[IFCB$Sample %in% FULLY_ANNOTATED$Sample,]
   
   #We have to find examples in the file IFCB_FEATURES that are not in IFCB. Once, found
   #we should add them to the IFCB under the others category
@@ -157,6 +165,8 @@ addMissingExamples<-function()
   new_examples$AutoClass<-'na'
   
   IFCB<-rbind(IFCB,new_examples)
+  rownames(IFCB)<-NULL
+  saveRDS(file = "IFCB_NEW.RData",IFCB)
 }
   
 showStatistics<-function(ifcb)
