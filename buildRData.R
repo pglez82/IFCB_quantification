@@ -154,6 +154,8 @@ updateIFCBFile<-function()
   
   #Delete the examples that do not belong from fully annotated samples
   IFCB<-IFCB[IFCB$Sample %in% FULLY_ANNOTATED$Sample,]
+  #Rebuild the factor to delete the unused levels
+  IFCB$Sample <- factor(IFCB$Sample)
   
   #We have to find examples in the file IFCB_FEATURES that are not in IFCB. Once, found
   #we should add them to the IFCB under the others category
@@ -164,7 +166,8 @@ updateIFCBFile<-function()
   new_examples$OriginalClass<-'Other'
   new_examples$AutoClass<-'na'
   
-  IFCB<-rbind(IFCB,new_examples)
+  #Rebuild the data.frame so it rebuilds the factors
+  IFCB<-data.frame(rbind(IFCB,new_examples))
   rownames(IFCB)<-NULL
   saveRDS(file = "IFCB_NEW.RData",IFCB)
 }
