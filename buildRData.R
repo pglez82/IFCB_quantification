@@ -174,13 +174,35 @@ updateIFCBFile<-function()
   IFCB<-arrange(IFCB,Sample,roi_number)
   
   #Finally  save the data to a file
-  saveRDS(file = "IFCB_NEW.RData",IFCB)
+  saveRDS(file = "IFCB.RData",IFCB)
+}
+
+#We find Nan values as features in the following columns 
+#"Area_over_PerimeterSquared", "Area_over_Perimeter","H90_over_Hflip", "H90_over_H180", "Hflip_over_H180", "summedConvexPerimeter_over_Perimeter", "rotated_BoundingBox_solidity"
+fixNanValues<-function()
+{
+  IFCB_FEATURES<-readRDS('IFCB_FEATURES.RData')
+  
+  #Finding columns with Nan features
+  #colnames(IFCB_FEATURES)[colSums(is.na(IFCB_FEATURES)) > 0]
+  
+  IFCB_FEATURES[is.na(IFCB_FEATURES)]=0
+  saveRDS(IFCB_FEATURES, file = 'IFCB_FEATURES.RData')
 }
   
 #Here we should use the datatable function to quickly export the huge data file into csv
+#We need the develpoment version of datatable in order to have the fwrite function
+#https://github.com/Rdatatable/data.table/wiki/Installation
 exportToCSV<-function()
 {
+  library(data.table)
   
+  #load the data
+  IFCB<-readRDS('IFCB.RData')
+  IFCB_FEATURES<-readRDS('IFCB_FEATURES.RData')
+  
+  IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
+  fwrite(IFCB_FEATURES,"IFCB.csv",nThread=12)
 }
 
 showStatistics<-function(ifcb)
