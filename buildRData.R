@@ -207,6 +207,21 @@ exportToCSV<-function()
   system("rm IFCB.csv")
 }
 
+analyzeData<-function()
+{
+  IFCB<-readRDS('IFCB.RData')
+  IFCB_SAMPLES<-readRDS('IFCB_SAMPLES.RData')
+  FULLY_ANNOTATED<-readRDS('FULLY_ANNOTATED.RData')
+  IFCB_SAMPLES<-IFCB_SAMPLES[IFCB_SAMPLES$Sample %in% FULLY_ANNOTATED$Sample,]
+  
+  par(mfrow=c(2,2))
+  #Show samples by year and examples
+  barplot(table(IFCB_SAMPLES$Year),main="Samples per year" ,xlab = "Year",ylab = "Number of samples")
+  
+  #Examples by class
+  barplot(table(IFCB$AutoClass),main="Examples per class" ,xlab = "Class",ylab = "Examples",las=3)
+}
+
 showStatistics<-function(ifcb)
 {
   library(plyr)
