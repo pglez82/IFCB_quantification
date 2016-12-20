@@ -138,14 +138,13 @@ combineFeatures<-function()
   saveRDS(ifcb_features,file = 'IFCB_FEATURES.RData')
 }
 
-#At this point, after calling combineFeatures, we have the final list of examples.
-#The problem is that IFCB file does not have the same number of examples. There are two possible cases:
-# 1 - Examples that are in IFCB but not in IFCB_FEATURES. This examples are from uncomplete files
-#     and should be deleted.
-# 2 - Examples that are in IFCB_FEATURES but not in IFCB. This examples are examples discarded
-#     when WHOI people were annotating. They should be placed in the 'Other' category.
+#At this point, after calling combineFeatures, we have the final list of examples in ICBF_FEATURES.
+#The problem is that IFCB file does not have the same number of examples.
+#We can have examples that are in IFCB_FEATURES but not in IFCB. This examples are examples discarded
+#when WHOI people were annotating. They should be placed in the 'Other' category.
 updateIFCBFile<-function()
 {
+  library(plyr)
   #load the IFCB annotated data
   IFCB<-readRDS('IFCB.RData')
   #load the features
@@ -167,11 +166,23 @@ updateIFCBFile<-function()
   new_examples$AutoClass<-'na'
   
   #Rebuild the data.frame so it rebuilds the factors
+  #We use the same sample levels for both files and rearrange the sets using this levels.
   IFCB<-data.frame(rbind(IFCB,new_examples))
   rownames(IFCB)<-NULL
+  
+  IFCB$Sample<-factor(IFCB$Sample,levels = FULLY_ANNOTATED$Sample)
+  IFCB<-arrange(IFCB,Sample,roi_number)
+  
+  #Finally  save the data to a file
   saveRDS(file = "IFCB_NEW.RData",IFCB)
 }
   
+#Here we should use the datatable function to quickly export the huge data file into csv
+exportToCSV<-function()
+{
+  
+}
+
 showStatistics<-function(ifcb)
 {
   library(plyr)
