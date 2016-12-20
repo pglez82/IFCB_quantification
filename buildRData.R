@@ -203,6 +203,8 @@ exportToCSV<-function()
   
   IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
   fwrite(IFCB_FEATURES,"IFCB.csv",nThread=12)
+  system("zip IFCB.zip IFCB.csv")
+  system("rm IFCB.csv")
 }
 
 showStatistics<-function(ifcb)
