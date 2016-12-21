@@ -200,9 +200,17 @@ exportToCSV<-function()
   #load the data
   IFCB<-readRDS('IFCB.RData')
   IFCB_FEATURES<-readRDS('IFCB_FEATURES.RData')
+  IFCB_SAMPLES<-readRDS('IFCB_SAMPLES.RData')
+  FULLY_ANNOTATED<-readRDS('FULLY_ANNOTATED.RData')
+  
+  #Delete the examples that do not belong from fully annotated samples
+  IFCB_SAMPLES<-IFCB_SAMPLES[IFCB_SAMPLES$Sample %in% FULLY_ANNOTATED$Sample,]
+  #Rebuild the factor to delete the unused levels
+  IFCB_SAMPLES$Sample <- factor(IFCB_SAMPLES$Sample)
   
   IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
   fwrite(IFCB_FEATURES,"IFCB.csv",nThread=12)
+  fwrite(IFCB_SAMPLES,"IFCB_SAMPLES.csv")
   system("zip IFCB.zip IFCB.csv")
   system("rm IFCB.csv")
 }
