@@ -1,6 +1,6 @@
 # IFCB_quantification 
 
-This project aims to use the plankton dataset https://github.com/hsosik/WHOI-Plankton for quantification.
+This project aims to use the [Annotated WHOI-Plankton Dataset](https://github.com/hsosik/WHOI-Plankton) for quantification.
 
 The steps that have been followed in order to adapt this dataset for quantification are described in the next section.
 
