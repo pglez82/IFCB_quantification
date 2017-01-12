@@ -1,5 +1,5 @@
 # TestExamGenerator
-Simple multiple choice exam generator. It integrates with the MCTest Corrector (https://play.google.com/store/apps/details?id=com.corretordetestes).
+Simple multiple choice exam generator. It integrates with the [MCTest Corrector](https://play.google.com/store/apps/details?id=com.corretordetestes).
 The idea behind this proyect is to build an automatic multichoice exam generator that is able to create an exam from a question list. 
 This question list is classified in different units and when you generate an exam, you can choose from which units you want to take the questions.
 This program generates three things:
@@ -11,3 +11,5 @@ MCTest Corrector is a free android app that can be downloaded from Google Play. 
 
 Under the template directory, you have the template used for generating the exam. This template is an IReports jrxml file that can be changed. I suggest you to
 duplicate the existing one before trying to modify it. The jrxml can be changed with a text editor or you can use the [IReports Designer from JasperResports](https://sourceforge.net/projects/ireport/files/iReport/iReport-5.6.0/) which is visual and quite easy to use. 
+
+The program has been developed in Java using NetBeans. In order to run it you need at least a JRE (Java Runtime Edition) installed in your computer. If you want to modify the code, you need a JDK+NetBeans. All the Java code is under the src directory and all the libraries used are under the lib folder. 
