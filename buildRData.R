@@ -177,6 +177,16 @@ updateIFCBFile<-function()
   saveRDS(file = "IFCB.RData",IFCB)
 }
 
+#This function creates a new class attribute that combines all the classes from the IFCB set into 6 different groups
+combineClassesInFunctionalGroups<-function()
+{
+  library(plyr)
+  ifcb<-readRDS('IFCB.RData')
+  fg<-read.table(file = 'functional_groups.csv',header = TRUE,sep = ',')
+  ifcb$FunctionalGroup<-factor(mapvalues(ifcb$OriginalClass,as.character(fg$Nombre.Carpeta),as.character(fg$GrupoFinal)))
+  saveRDS(ifcb, file = 'IFCB.RData')
+}
+
 #We find Nan values as features in the following columns 
 #"Area_over_PerimeterSquared", "Area_over_Perimeter","H90_over_Hflip", "H90_over_H180", "Hflip_over_H180", "summedConvexPerimeter_over_Perimeter", "rotated_BoundingBox_solidity"
 fixNanValues<-function()
