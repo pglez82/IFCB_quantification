@@ -227,6 +227,7 @@ exportToCSV<-function()
 
 analyzeData<-function()
 {
+  library(plotrix)
   IFCB<-readRDS('IFCB.RData')
   IFCB_SAMPLES<-readRDS('IFCB_SAMPLES.RData')
   FULLY_ANNOTATED<-readRDS('FULLY_ANNOTATED.RData')
@@ -236,13 +237,22 @@ analyzeData<-function()
   
   #Show samples by year and examples
   pdf(file="plots/samplesperyear.pdf",width=6,height=4,paper='special')
-  barplot(table(IFCB_SAMPLES$Year),main="Samples per year" ,xlab = "Year",ylim=c(0,200),ylab = "Number of samples")
+  barplot(table(IFCB_SAMPLES$Year),main="Samples by year" ,xlab = "Year",ylim=c(0,200),ylab = "Number of samples")
   dev.off()
   
-  #Examples by class
+  #Examples by auto-class
   pdf(file="plots/examplesperclass.pdf",width=15,height=8,paper='special')
   par(mar = c(10,4,4,2) + 0.1)
-  gap.barplot(table(IFCB$AutoClass), c(400001,2450000),levels(IFCB$AutoClass),ytics = seq(from = 0,to=2700000,by = 100000),yaxlab = seq(from = 0,to=2700000,by = 100000),las=3,main="Examples per class" ,ylab = "Examples",xlab="")
+  gap.barplot(table(IFCB$AutoClass), c(400001,2450000),levels(IFCB$AutoClass),ytics = seq(from = 0,to=2700000,by = 100000),yaxlab = seq(from = 0,to=2700000,by = 100000),las=3,main="Examples by class" ,ylab = "Examples",xlab="")
+  dev.off()
+  
+  #Examples by functional group
+  pdf(file="plots/examplesperfunctionalgroup.pdf",width=15,height=8,paper='special')
+  par(las=2) # make label text perpendicular to axis
+  par(mar=c(5,8,4,2)) # increase y-axis margin.
+  freqs<-data.frame(table(IFCB$FunctionalGroup))
+  lbls<-paste(freqs[,1]," (",round(freqs$Freq/sum(freqs$Freq)*100,digits = 1),"%)",sep="")
+  barplot(freqs[,2], main="Examples by functional group",col=rainbow(5), horiz=TRUE,names.arg=lbls,cex.names=0.8)
   dev.off()  
 }
 
