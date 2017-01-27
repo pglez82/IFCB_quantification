@@ -219,10 +219,10 @@ exportToCSV<-function()
   IFCB_SAMPLES$Sample <- factor(IFCB_SAMPLES$Sample)
   
   IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,FunctionalGroup=IFCB$FunctionalGroup,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
-  fwrite(IFCB_FEATURES,"IFCB.csv",nThread=12)
-  fwrite(IFCB_SAMPLES,"IFCB_SAMPLES.csv")
-  system("zip IFCB.zip IFCB.csv")
-  system("rm IFCB.csv")
+  fwrite(IFCB_FEATURES,"export/IFCB.csv",nThread=12)
+  fwrite(IFCB_SAMPLES,"export/IFCB_SAMPLES.csv")
+  system("zip export/IFCB.zip export/IFCB.csv")
+  system("rm export/IFCB.csv")
 }
 
 analyzeData<-function()
