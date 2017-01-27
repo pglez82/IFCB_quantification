@@ -1,0 +1,1 @@
+In this folder goes the data exported by the #exportToCSV function.

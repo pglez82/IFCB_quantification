@@ -218,7 +218,7 @@ exportToCSV<-function()
   #Rebuild the factor to delete the unused levels
   IFCB_SAMPLES$Sample <- factor(IFCB_SAMPLES$Sample)
   
-  IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
+  IFCB_FEATURES<-data.frame(Sample=IFCB_FEATURES$Sample,roi_number=IFCB_FEATURES$roi_number,Class=IFCB$AutoClass,FunctionalGroup=IFCB$FunctionalGroup,IFCB_FEATURES[3:ncol(IFCB_FEATURES)])
   fwrite(IFCB_FEATURES,"IFCB.csv",nThread=12)
   fwrite(IFCB_SAMPLES,"IFCB_SAMPLES.csv")
   system("zip IFCB.zip IFCB.csv")
@@ -252,7 +252,8 @@ analyzeData<-function()
   par(mar=c(5,8,4,2)) # increase y-axis margin.
   freqs<-data.frame(table(IFCB$FunctionalGroup))
   lbls<-paste(freqs[,1]," (",round(freqs$Freq/sum(freqs$Freq)*100,digits = 1),"%)",sep="")
-  barplot(freqs[,2], main="Examples by functional group",col=rainbow(5), horiz=TRUE,names.arg=lbls,cex.names=0.8)
+  barplot(freqs[,2], main="Examples by functional group",col=rainbow(5), xlim=c(0,3000000), horiz=TRUE,names.arg=lbls,cex.names=0.8)
+  grid(nx=NULL, ny=NA)
   dev.off()  
 }
 
