@@ -1,4 +1,4 @@
-# IFCB_quantification 
+# Deep learning feature extraction
 
 This part of the project consists on using deep learning for feature extraction on the IFCB dataset. We will try to improve the features downloaded from the IFCB DashBoard. The steps that we will take are:
 
