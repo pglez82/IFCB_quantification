@@ -16,3 +16,16 @@ extractSmallerDataset<-function()
   IFCB_SMALL <- IFCB_SMALL[ind,]
   fwrite(IFCB_SMALL,"../export/IFCB_SMALL.csv",nThread=12)
 }
+
+testNormalFeatures<-function()
+{
+  library(caret)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 2)
+  set.seed(7)
+  IFCB_SMALL<-fread(file='../export/IFCB_SMALL.csv')
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class","Sample","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
+}
