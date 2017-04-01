@@ -28,5 +28,5 @@ testNormalFeatures<-function()
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
-  save(model,file="../results/IFCB_SMALL_NORMALFEAT.RData");
+  save(model,file="results/IFCB_SMALL_NORMALFEAT.RData")
 }
