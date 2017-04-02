@@ -84,7 +84,35 @@ preprocessImagesForH2O<-function()
       m[startx:(startx+dim(image)[1]-1),starty:(starty+dim(image)[2]-1)]=imageData(image)
       c(originalDim,as.vector(m))
     }
+    print("Saving to file...")
     res<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],images)
+    colnames(X)[res] <- "Width"
+    colnames(X)[res] <- "Height"
     fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE,nThread=12)
+    print("Saving done")
   }
+}
+  
+loadDataH2O<-function()
+{
+  library(h2o)
+  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
+  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O.csv",destination_frame = "IFCB_SMALL_H2O.hex")
+}
+
+trainCNN<-function()
+{
+  #Connect to h2o load the data and train the network
+  library(h2o)
+  instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
+  IFCB<-h2o.getFrame("IFCB_SMALL_H2O.hex")
+  NN_model = h2o.deeplearning(
+    x = 2:785,
+    training_frame = MDIG,
+    hidden = c(400, 200, 2, 200, 400 ),
+    epochs = 600,
+    activation = "Tanh",
+    autoencoder = TRUE
+  )
+  train = h2o.deepfeatures(NN_model, IFCB, layer=3)
 }
