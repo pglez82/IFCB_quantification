@@ -53,17 +53,20 @@ preprocessImagesForH2O<-function()
   dimen<-64
   IFCB<-fread('export/IFCB_SMALL.csv')
   paths<-computeImageFileNames(IFCB)
-  IFCB<-IFCB[1:500,]
-  paths<-paths[1:500]
   images = foreach(i=1:length(paths),.combine = 'rbind')%dopar%
   {
     m<-matrix(0,nrow = dimen,ncol=dimen)
     image<-readImage(paths[i])
-    image<-resize(image,dimen)
+    originalDim<-dim(image)
+    if (originalDim[1]>originalDim[2])
+      image<-resize(image,w = dimen)
+    else
+      image<-resize(image,h=dimen)
+    
     startx<-(dimen-dim(image)[1])%/%2+1
     starty<-(dimen-dim(image)[2])%/%2+1
     m[startx:(startx+dim(image)[1]-1),starty:(starty+dim(image)[2]-1)]=imageData(image)
-    as.vector(m)
+    c(originalDim,as.vector(m))
   }
   
   res<-data.table(Class=IFCB$Class,Sample=IFCB$Sample,roi_number=IFCB$roi_number,FunctionalGroup=IFCB$FunctionalGroup,images)
