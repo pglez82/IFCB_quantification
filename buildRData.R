@@ -190,7 +190,7 @@ combineClassesInFunctionalGroups<-function()
 #After running updateIFCBFile we have added to the dataset rows but we do not have the images. Maybe we will need them for methods
 #as deeplearning. This function will attemp to download the images and place them in the proper directory. We can identify this images
 #because the Original class is Other and the AutoClass is na. Also the file should not exist
-downloadMissingImages()<-function()
+downloadMissingImages<-function()
 {
   library(data.table)
   BASE_URL<-"http://ifcb-data.whoi.edu/mvco/"
