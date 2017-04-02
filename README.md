@@ -13,7 +13,8 @@ All functions needed to process the data are in the file buildRData.R. The steps
 3. In this step we take all the csv downloaded in step 2 and we merge them, combining all the features in a RData file. (see function *combineFeatures()*)
 4. In this step, we match the features (computed in step 3) with the examples extracted from step 1. We only take the examples from complete samples. The final result is a dataset with 3,4 million images over 964 samples and annotated in 51 different classes.
 5. In this fifth step we compute the functional group of each example. There are five functional groups. This attribute can be used to reduce the number of classes from 51 to just 5. For this, we have to use the function *combineClassesInFunctionalGroups()*. The new attribute is computed in the column FunctionalGroup. Posible values are Dinoflagellata, Other, Diatom, Flagellate and Ciliate. Conversion from classes into functional groups table can be found in the file 'functional_groups.csv'.
-6. [Optional] There are seven columns with missing values. With the function *fixNanValues()* it is possible to set them to 0.
-7. Data export. With the function *exportToCSV()* we build a file IFCB.csv were the columns are: Sample, roi_number, Class,...features...
+6. In the sixth step we download the missing images. We already have the features but we download them just in case we need to use the images for something else. The function that does this is *downloadMissingImages()*.
+7. [Optional] There are seven columns with missing values. With the function *fixNanValues()* it is possible to set them to 0.
+8. Data export. With the function *exportToCSV()* we build a file IFCB.csv were the columns are: Sample, roi_number, Class,...features...
 
 
