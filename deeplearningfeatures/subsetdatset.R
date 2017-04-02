@@ -66,7 +66,7 @@ preprocessImagesForH2O<-function()
     chunkEnd<-chunk*chunkSize
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]"))
     #if we are in the last chunk, compute the rest of the images
-    if (chunk==length(paths)) chunkEnd<-length(paths)
+    if (chunk==nChunks) chunkEnd<-length(paths)
     images<-foreach (i=chunkStart:chunkEnd,.combine='rbind')%dopar%
     {
       print(paste("Leyendo imagen",i))
@@ -85,6 +85,6 @@ preprocessImagesForH2O<-function()
       c(originalDim,as.vector(m))
     }
     res<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],images)
-    fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE)
+    fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE,nThread=12)
   }
 }
