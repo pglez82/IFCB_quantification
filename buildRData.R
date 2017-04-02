@@ -187,6 +187,27 @@ combineClassesInFunctionalGroups<-function()
   saveRDS(ifcb, file = 'IFCB.RData')
 }
 
+#After running updateIFCBFile we have added to the dataset rows but we do not have the images. Maybe we will need them for methods
+#as deeplearning. This function will attemp to download the images and place them in the proper directory. We can identify this images
+#because the Original class is Other and the AutoClass is na. Also the file should not exist
+downloadMissingImages()<-function()
+{
+  library(data.table)
+  BASE_URL<-"http://ifcb-data.whoi.edu/mvco/"
+  IFCB<-as.data.table(readRDS('IFCB.RData'))
+  download<-subset(IFCB,OriginalClass=='Other' & AutoClass == 'na')
+  fileNames<-paste(download$Sample,"_",formatC(download$roi_number, width=5, flag="0"),".png",sep="")
+  downloadURLs<-paste("http://ifcb-data.whoi.edu/mvco/",fileNames,sep="")
+  year<-sapply(strsplit(as.character(download$Sample),"_"),"[[",2)
+  destFiles<-paste("../data/",year,"/Other/",fileNames,sep="")
+  pb <- txtProgressBar(min = 0, max = length(downloadURLs), style = 3)
+  for (i in 1:downloadURLs)
+  {
+    download.file(url = downloadURLs[i],quiet = TRUE,destfile = destFiles[i])
+    setTxtProgressBar(pb, i)
+  }
+}
+
 #We find Nan values as features in the following columns 
 #"Area_over_PerimeterSquared", "Area_over_Perimeter","H90_over_Hflip", "H90_over_H180", "Hflip_over_H180", "summedConvexPerimeter_over_Perimeter", "rotated_BoundingBox_solidity"
 fixNanValues<-function()
