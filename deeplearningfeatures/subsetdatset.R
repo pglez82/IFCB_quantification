@@ -67,7 +67,7 @@ preprocessImagesForH2O<-function()
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]"))
     #if we are in the last chunk, compute the rest of the images
     if (chunk==length(paths)) chunkEnd<-length(paths)
-    foreach (i=chunkStart:chunkEnd,.combine='rbind')%do%
+    images<-foreach (i=chunkStart:chunkEnd,.combine='rbind')%do%
     {
       print(paste("Leyendo imagen",i))
       m<-matrix(0,nrow = dimen,ncol=dimen)
