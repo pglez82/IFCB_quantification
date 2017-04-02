@@ -85,6 +85,6 @@ preprocessImagesForH2O<-function()
       c(originalDim,as.vector(m))
     }
     res<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],images)
-    fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE)
+    fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE,nThread=12)
   }
 }
