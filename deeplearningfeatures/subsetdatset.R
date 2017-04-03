@@ -114,5 +114,29 @@ trainCNN<-function()
     activation = "Tanh",
     autoencoder = TRUE
   )
+  print("Training Deep Neural Network")
   train = h2o.deepfeatures(NN_model, IFCB, layer=3)
+  print("Done. Computing features for images.")
+  features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
+  print("Done. Saving features to csv")
+  IFCB_DF<-as.data.frame(IFCB)
+  features$Class<-IFCB_DF$Class
+  features$Sample<-IFCB_DF$Sample
+  features$roi_number<-IFCB_DF$roi_number
+  fwrite(as.data.frame(features),file = "export/H2O_FEATURES.csv",nThread=12)
+  print("Done.")
+}
+
+testH2OFeatures<-function()
+{
+  library(caret)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 14)
+  set.seed(7)
+  IFCB_H2O<-fread(file='../export/H2O_FEATURES.csv')
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class","Sample","roi_number"):=NULL]
+  model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
+  save(model,file="results/IFCB_MODEL_H2O.RData")
 }
