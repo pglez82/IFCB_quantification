@@ -85,10 +85,10 @@ preprocessImagesForH2O<-function()
       c(originalDim,as.vector(m))
     }
     print("Saving to file...")
-    res<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],images)
-    colnames(res)[5] <- "Width"
-    colnames(res)[6] <- "Height"
-    fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE,nThread=12)
+    res<-data.table(images[,3:ncol(images)])
+    fwrite(res,file = "export/IFCB_SMALL_H2O_IMAGES.csv",append = TRUE,nThread=12)
+    extradata<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd])
+    fwrite(res,file = "export/IFCB_SMALL_H2O_EXTRA.csv",append = TRUE,nThread=12)
     print("Saving done")
   }
 }
@@ -97,7 +97,7 @@ loadDataH2O<-function()
 {
   library(h2o)
   h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
-  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O.csv",destination_frame = "IFCB_SMALL_H2O.hex")
+  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O_IMAGES.csv",destination_frame = "IFCB_SMALL_H2O_IMAGES.hex")
 }
 
 trainCNN<-function()
@@ -105,10 +105,10 @@ trainCNN<-function()
   #Connect to h2o load the data and train the network
   library(h2o)
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
-  IFCB<-h2o.getFrame("IFCB_SMALL_H2O.hex")
+  IFCB<-h2o.getFrame("IFCB_SMALL_H2O_IMAGES.hex")
   print("Training Deep Neural Network")
   NN_model = h2o.deeplearning(
-    x = 7:4102,
+    x = 1:4096,
     training_frame = IFCB,
     hidden = c(400, 300, 200, 300, 400 ),
     epochs = 600,
@@ -117,8 +117,9 @@ trainCNN<-function()
   )
   print("Done. Computing features for images.")
   features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
+  features<-as.data.frame(features)
   print("Done. Saving features to csv")
-  IFCB_DF<-as.data.frame(IFCB)
+  IFCB_DF<-fread('IFCB_SMALL_H2O_EXTRA.csv')
   features$Width<-IFCB_DF$Width
   features$Height<-IFCB_DF$Height
   features$Class<-IFCB_DF$Class
