@@ -54,7 +54,7 @@ preprocessImagesForH2O<-function()
   library(doMC)
   registerDoMC(cores = 6)
   
-  dimen<-64
+  dimen<-32
   IFCB<-fread('export/IFCB_SMALL.csv')
   paths<-computeImageFileNames(IFCB)
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
@@ -107,9 +107,9 @@ trainCNN<-function()
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
   IFCB<-h2o.getFrame("IFCB_SMALL_H2O.hex")
   NN_model = h2o.deeplearning(
-    x = 2:785,
-    training_frame = MDIG,
-    hidden = c(400, 200, 2, 200, 400 ),
+    x = 7:4102,
+    training_frame = IFCB,
+    hidden = c(400, 300, 200, 300, 400 ),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE
