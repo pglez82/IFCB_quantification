@@ -106,20 +106,21 @@ trainCNN<-function()
   library(h2o)
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
   IFCB<-h2o.getFrame("IFCB_SMALL_H2O.hex")
+  print("Training Deep Neural Network")
   NN_model = h2o.deeplearning(
-    x = 7:1030,
+    x = 7:4102,
     training_frame = IFCB,
     hidden = c(400, 300, 200, 300, 400 ),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE
   )
-  print("Training Deep Neural Network")
-  train = h2o.deepfeatures(NN_model, IFCB, layer=3)
   print("Done. Computing features for images.")
   features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
   print("Done. Saving features to csv")
   IFCB_DF<-as.data.frame(IFCB)
+  features$Width<-IFCB_DF$Width
+  features$Height<-IFCB_DF$Height
   features$Class<-IFCB_DF$Class
   features$Sample<-IFCB_DF$Sample
   features$roi_number<-IFCB_DF$roi_number
