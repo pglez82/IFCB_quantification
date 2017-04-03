@@ -86,8 +86,8 @@ preprocessImagesForH2O<-function()
     }
     print("Saving to file...")
     res<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],images)
-    colnames(X)[res] <- "Width"
-    colnames(X)[res] <- "Height"
+    colnames(res)[5] <- "Width"
+    colnames(res)[6] <- "Height"
     fwrite(res,file = "export/IFCB_SMALL_H2O.csv",append = TRUE,nThread=12)
     print("Saving done")
   }
