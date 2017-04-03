@@ -87,7 +87,7 @@ preprocessImagesForH2O<-function()
     print("Saving to file...")
     res<-data.table(images[,3:ncol(images)])
     fwrite(res,file = "export/IFCB_SMALL_H2O_IMAGES.csv",append = TRUE,nThread=12)
-    extradata<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd])
+    extradata<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],Width=images[,1],Height=images[,2])
     fwrite(extradata,file = "export/IFCB_SMALL_H2O_EXTRA.csv",append = TRUE,nThread=12)
     print("Saving done")
   }
@@ -113,7 +113,8 @@ trainCNN<-function()
     hidden = c(400, 300, 200, 300, 400 ),
     epochs = 600,
     activation = "Tanh",
-    autoencoder = TRUE
+    autoencoder = TRUE,
+    model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
   features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
