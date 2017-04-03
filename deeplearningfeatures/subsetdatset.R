@@ -52,7 +52,7 @@ preprocessImagesForH2O<-function()
   library(EBImage)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 6)
+  registerDoMC(cores = 8)
   
   dimen<-32
   IFCB<-fread('export/IFCB_SMALL.csv')
@@ -107,7 +107,7 @@ trainCNN<-function()
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
   IFCB<-h2o.getFrame("IFCB_SMALL_H2O.hex")
   NN_model = h2o.deeplearning(
-    x = 7:4102,
+    x = 7:1030,
     training_frame = IFCB,
     hidden = c(400, 300, 200, 300, 400 ),
     epochs = 600,
