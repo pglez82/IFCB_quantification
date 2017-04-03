@@ -54,7 +54,7 @@ preprocessImagesForH2O<-function()
   library(doMC)
   registerDoMC(cores = 8)
   
-  dimen<-32
+  dimen<-64
   IFCB<-fread('export/IFCB_SMALL.csv')
   paths<-computeImageFileNames(IFCB)
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
