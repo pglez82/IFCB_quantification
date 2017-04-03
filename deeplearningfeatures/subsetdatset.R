@@ -88,7 +88,7 @@ preprocessImagesForH2O<-function()
     res<-data.table(images[,3:ncol(images)])
     fwrite(res,file = "export/IFCB_SMALL_H2O_IMAGES.csv",append = TRUE,nThread=12)
     extradata<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd])
-    fwrite(res,file = "export/IFCB_SMALL_H2O_EXTRA.csv",append = TRUE,nThread=12)
+    fwrite(extradata,file = "export/IFCB_SMALL_H2O_EXTRA.csv",append = TRUE,nThread=12)
     print("Saving done")
   }
 }
