@@ -135,8 +135,8 @@ testH2OFeatures<-function()
   registerDoMC(cores = 14)
   set.seed(7)
   IFCB_H2O<-fread(file='../export/H2O_FEATURES.csv')
-  y<-factor(IFCB_SMALL$Class)
-  x<-IFCB_SMALL[,c("Class","Sample","roi_number"):=NULL]
+  y<-factor(IFCB_H2O$Class)
+  x<-IFCB_H2O[,c("Class","Sample","roi_number"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
   save(model,file="results/IFCB_MODEL_H2O.RData")
 }
