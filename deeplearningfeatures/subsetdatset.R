@@ -1,3 +1,8 @@
+##Common parameters
+#resize image dimension
+dimen<-64
+
+
 extractSmallerDataset<-function()
 {
   library(data.table)
@@ -54,7 +59,7 @@ preprocessImagesForH2O<-function()
   library(doMC)
   registerDoMC(cores = 8)
   
-  dimen<-64
+  
   IFCB<-fread('export/IFCB_SMALL.csv')
   paths<-computeImageFileNames(IFCB)
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
@@ -104,23 +109,25 @@ trainCNN<-function()
 {
   #Connect to h2o load the data and train the network
   library(h2o)
+  library(data.table)
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
   IFCB<-h2o.getFrame("IFCB_SMALL_H2O_IMAGES.hex")
   print("Training Deep Neural Network")
   NN_model = h2o.deeplearning(
-    x = 1:4096,
+    x = 1:dimen*dimen,
     training_frame = IFCB,
-    hidden = c(400, 300, 200, 300, 400 ),
+    hidden = c(400, 300, 200, 300, 400),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE,
+    stopping_rounds = 20,
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
   features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
   features<-as.data.frame(features)
   print("Done. Saving features to csv")
-  IFCB_DF<-fread('IFCB_SMALL_H2O_EXTRA.csv')
+  IFCB_DF<-fread('export/IFCB_SMALL_H2O_EXTRA.csv')
   features$Width<-IFCB_DF$Width
   features$Height<-IFCB_DF$Height
   features$Class<-IFCB_DF$Class
