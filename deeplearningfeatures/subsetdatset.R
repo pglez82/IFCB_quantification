@@ -2,11 +2,20 @@
 #resize image dimension
 dimen<-64
 
+DS_PATH<-'../export/IFCB.csv'
+SMALL_DS_PATH<-'export/IFCB_SMALL.csv'
+RF_NORMALFEAT_MODEL->"results/IFCB_SMALL_NORMALFEAT.RData"
+H2O_DS_IMAGES<-"export/IFCB_SMALL_H2O_IMAGES.csv"
+H2O_DS_EXTRA<-"export/IFCB_SMALL_H2O_EXTRA.csv"
+H2O_DF_NAME<-"IFCB_SMALL_H2O_IMAGES.hex"
+H2O_NN_FEATURES<-"export/H2O_FEATURES.csv"
+RF_NNFEAT_MODEL<-"results/IFCB_MODEL_H2O.RData"
+
 
 extractSmallerDataset<-function()
 {
   library(data.table)
-  IFCB<-fread(file = '../export/IFCB.csv')
+  IFCB<-fread(file = DS_PATH)
   IFCB_SMALL<-IFCB[, if(.N>1000) .SD, by = Class]
   IFCB_SMALL$Class<-factor(IFCB_SMALL$Class)
   
@@ -23,7 +32,7 @@ extractSmallerDataset<-function()
   IFCB<-readRDS('../IFCB.RData')
   IFCB_SMALL <- IFCB_SMALL[ind,]
   IFCB_SMALL$OriginalClass <- IFCB$OriginalClass[ind]
-  fwrite(IFCB_SMALL,"../export/IFCB_SMALL.csv",nThread=12)
+  fwrite(IFCB_SMALL,SMALL_DS_PATH,nThread=12)
 }
 
 testNormalFeatures<-function()
@@ -33,11 +42,11 @@ testNormalFeatures<-function()
   library(doMC)
   registerDoMC(cores = 14)
   set.seed(7)
-  IFCB_SMALL<-fread(file='../export/IFCB_SMALL.csv')
+  IFCB_SMALL<-fread(file=)
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
-  save(model,file="results/IFCB_SMALL_NORMALFEAT.RData")
+  save(model,file=RF_NORMALFEAT_MODEL)
 }
 
 #Get the file names in order to process all the images for deep learning
@@ -47,7 +56,7 @@ computeImageFileNames<-function(IFCB)
   year<-sapply(strsplit(IFCB$Sample,"_"),"[[",2)
   paths<-vector(length=length(year))
   for (i in 1:length(year))
-    paths[i]<-paste("../data/",year[i],"/",IFCB$OriginalClass[i],"/",IFCB$Sample[i],"_",formatC(IFCB$roi_number[i], width=5, flag="0"),".png",sep="")
+    paths[i]<-paste("../../data/",year[i],"/",IFCB$OriginalClass[i],"/",IFCB$Sample[i],"_",formatC(IFCB$roi_number[i], width=5, flag="0"),".png",sep="")
   
   return (paths)
 }
@@ -60,7 +69,7 @@ preprocessImagesForH2O<-function()
   registerDoMC(cores = 8)
   
   
-  IFCB<-fread('export/IFCB_SMALL.csv')
+  IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
   chunkSize<-10000
@@ -91,9 +100,9 @@ preprocessImagesForH2O<-function()
     }
     print("Saving to file...")
     res<-data.table(images[,3:ncol(images)])
-    fwrite(res,file = "export/IFCB_SMALL_H2O_IMAGES.csv",append = TRUE,nThread=12)
+    fwrite(res,file = H2O_DS_IMAGES,append = TRUE,nThread=12)
     extradata<-data.table(Class=IFCB$Class[chunkStart:chunkEnd],Sample=IFCB$Sample[chunkStart:chunkEnd],roi_number=IFCB$roi_number[chunkStart:chunkEnd],FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],Width=images[,1],Height=images[,2])
-    fwrite(extradata,file = "export/IFCB_SMALL_H2O_EXTRA.csv",append = TRUE,nThread=12)
+    fwrite(extradata,file = H2O_DS_EXTRA,append = TRUE,nThread=12)
     print("Saving done")
   }
 }
@@ -102,7 +111,7 @@ loadDataH2O<-function()
 {
   library(h2o)
   h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
-  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O_IMAGES.csv",destination_frame = "IFCB_SMALL_H2O_IMAGES.hex")
+  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O_IMAGES.csv",destination_frame = H2O_DF_NAME)
 }
 
 trainCNN<-function()
@@ -111,7 +120,7 @@ trainCNN<-function()
   library(h2o)
   library(data.table)
   instance =  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
-  IFCB<-h2o.getFrame("IFCB_SMALL_H2O_IMAGES.hex")
+  IFCB<-h2o.getFrame(H2O_DF_NAME)
   print("Training Deep Neural Network")
   NN_model = h2o.deeplearning(
     x = 1:dimen*dimen,
@@ -127,13 +136,13 @@ trainCNN<-function()
   features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
   features<-as.data.frame(features)
   print("Done. Saving features to csv")
-  IFCB_DF<-fread('export/IFCB_SMALL_H2O_EXTRA.csv')
+  IFCB_DF<-fread(H2O_DS_EXTRA)
   features$Width<-IFCB_DF$Width
   features$Height<-IFCB_DF$Height
   features$Class<-IFCB_DF$Class
   features$Sample<-IFCB_DF$Sample
   features$roi_number<-IFCB_DF$roi_number
-  fwrite(as.data.frame(features),file = "export/H2O_FEATURES.csv",nThread=12)
+  fwrite(as.data.frame(features),file = H2O_NN_FEATURES,nThread=12)
   print("Done.")
 }
 
@@ -142,11 +151,11 @@ testH2OFeatures<-function()
   library(caret)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 14)
+  registerDoMC(cores = 15)
   set.seed(7)
-  IFCB_H2O<-fread(file='../export/H2O_FEATURES.csv')
+  IFCB_H2O<-fread(file=H2O_NN_FEATURES)
   y<-factor(IFCB_H2O$Class)
   x<-IFCB_H2O[,c("Class","Sample","roi_number"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
-  save(model,file="results/IFCB_MODEL_H2O.RData")
+  save(model,file=RF_NNFEAT_MODEL)
 }
