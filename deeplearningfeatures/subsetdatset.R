@@ -2,19 +2,30 @@
 #resize image dimension
 dimen<-64
 
+#Path of IFCB dataset
 DS_PATH<-'../export/IFCB.csv'
+#Path to save a subset of the IFCB dataset
 SMALL_DS_PATH<-'export/IFCB_SMALL.csv'
+#Model using a random forest with normal features
 RF_NORMALFEAT_MODEL<-"results/IFCB_SMALL_NORMALFEAT.RData"
+#Path to export the images in csv format for training the NN 
 H2O_DS_IMAGES<-"export/IFCB_SMALL_H2O_IMAGES.csv"
+#Aditional data to the images (Class, roi_number, etc)
 H2O_DS_EXTRA<-"export/IFCB_SMALL_H2O_EXTRA.csv"
+#Dataframe name in H2O for importing the images
 H2O_DF_NAME<-"IFCB_SMALL_H2O_IMAGES.hex"
+#Path to export the NN computed features
 H2O_NN_FEATURES<-"export/H2O_FEATURES.csv"
+#Model using the features computed by the NN
 RF_NNFEAT_MODEL<-"results/IFCB_MODEL_H2O.RData"
 
-
+#This function allows us to extract a smaller dataset from the IFCB dataset
+#The aim of the function is to test de DNN faster
 extractSmallerDataset<-function()
 {
   library(data.table)
+  #Control the size of the dataset
+  proportion<-0.008
   IFCB<-fread(file = DS_PATH)
   IFCB_SMALL<-IFCB[, if(.N>1000) .SD, by = Class]
   IFCB_SMALL$Class<-factor(IFCB_SMALL$Class)
@@ -27,7 +38,7 @@ extractSmallerDataset<-function()
     unlist(idx)
   }
   set.seed(7)
-  ind <- createSets(IFCB_SMALL, IFCB_SMALL$Class, 0.008)
+  ind <- createSets(IFCB_SMALL, IFCB_SMALL$Class, proportion)
   #We need the detailed class in order to get the image
   IFCB<-readRDS('../IFCB.RData')
   IFCB_SMALL <- IFCB_SMALL[ind,]
@@ -35,6 +46,8 @@ extractSmallerDataset<-function()
   fwrite(IFCB_SMALL,SMALL_DS_PATH,nThread=12)
 }
 
+#We build a model using caret using normal features. This is the baseline result that
+#we have to improve with the new features
 testNormalFeatures<-function()
 {
   library(caret)
@@ -61,6 +74,8 @@ computeImageFileNames<-function(IFCB)
   return (paths)
 }
 
+#This parelelized function, iterates over all the images, resizes them and saves them in a csv
+#prepared to be loaded in H2O cluster
 preprocessImagesForH2O<-function()
 {
   library(EBImage)
@@ -107,6 +122,7 @@ preprocessImagesForH2O<-function()
   }
 }
   
+#Loads the data in H2O cluster prepared to be used by deep learning algorithms
 loadDataH2O<-function()
 {
   library(h2o)
@@ -114,6 +130,8 @@ loadDataH2O<-function()
   h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O_IMAGES.csv",destination_frame = H2O_DF_NAME)
 }
 
+#Trains an autoencoder and extracts the features (one NN layer). The idea is that this
+#NN layer is a representation of the images that can be used in supervised training
 trainCNN<-function()
 {
   #Connect to h2o load the data and train the network
@@ -125,7 +143,7 @@ trainCNN<-function()
   NN_model = h2o.deeplearning(
     x = 1:dimen*dimen,
     training_frame = IFCB,
-    hidden = c(400, 300, 200, 300, 400),
+    hidden = c(400, 200, 100, 200, 400),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE,
@@ -146,6 +164,8 @@ trainCNN<-function()
   print("Done.")
 }
 
+#With the features computed by the deep learning algorithm we train a RF caret
+#model. The aim is to get a better accuracy than using the normal features
 testH2OFeatures<-function()
 {
   library(caret)
