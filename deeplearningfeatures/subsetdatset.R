@@ -67,11 +67,16 @@ computeImageFileNames<-function(IFCB)
 {
   #Get the year
   year<-sapply(strsplit(IFCB$Sample,"_"),"[[",2)
-  paths<-vector(length=length(year))
-  for (i in 1:length(year))
-    paths[i]<-paste("../../data/",year[i],"/",IFCB$OriginalClass[i],"/",IFCB$Sample[i],"_",formatC(IFCB$roi_number[i], width=5, flag="0"),".png",sep="")
-  
-  return (paths)
+  return(paste("../../data/",year,"/",IFCB$OriginalClass,"/",IFCB$Sample[i],"_",formatC(IFCB$roi_number[i], width=5, flag="0"),".png",sep=""))
+}
+
+computeMeanPixelValue<-function()
+{
+  nImages<-10000
+  paths<-computeImageFileNames(IFCB)
+  selected<-sample(paths,nImages)
+  ##Muy intersante readImage de EBImage las lee todas a la vez. Luego llamar a apply pa hacer la media
+  #serían dos lineas. Se puede cambiar también abajo seguro
 }
 
 #This parelelized function, iterates over all the images, resizes them and saves them in a csv
