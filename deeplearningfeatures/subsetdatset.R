@@ -83,10 +83,8 @@ computeMeanPixelValue<-function()
   paths<-computeImageFileNames(IFCB)
   selected<-sample(paths,nImages)
   meanpixels<-foreach (i=1:length(paths),.combine='c') %dopar%
-    mean(imageData(readImage(paths[i])))
-
-  mp<-mean(meanpixels)
-  saveRDS(mp,file = MEAN_PIXEL_VALUE)
+    mean(readImage(paths[i]))
+  saveRDS(mean(meanpixels),file = MEAN_PIXEL_VALUE)
 }
 
 #This parelelized function, iterates over all the images, resizes them and saves them in a csv
@@ -96,7 +94,7 @@ preprocessImagesForH2O<-function()
   library(EBImage)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 8)
+  registerDoMC(cores = 6)
   
   
   IFCB<-fread(SMALL_DS_PATH)
