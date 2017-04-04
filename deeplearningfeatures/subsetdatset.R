@@ -99,6 +99,9 @@ preprocessImagesForH2O<-function()
   
   IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
+  resizedPaths<-gsub("data","resized",paths)
+  for (p in unique(dirname(resizedPaths)))
+    dir.create(p,recursive = TRUE,showWarnings = FALSE)
   
   #Load the value of the mean pixel previously computed. Stored in mp
   mp<-readRDS(MEAN_PIXEL_VALUE)
@@ -128,6 +131,7 @@ preprocessImagesForH2O<-function()
       startx<-(dimen-dim(image)[1])%/%2+1
       starty<-(dimen-dim(image)[2])%/%2+1
       m[startx:(startx+dim(image)[1]-1),starty:(starty+dim(image)[2]-1)]=imageData(image)
+      writeImage(Image(m),resizedPaths[i])
       c(originalDim,as.vector(m))
     }
     print("Saving to file...")
