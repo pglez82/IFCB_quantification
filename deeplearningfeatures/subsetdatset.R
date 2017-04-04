@@ -147,7 +147,6 @@ trainCNN<-function()
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE,
-    stopping_rounds = 20,
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
