@@ -163,7 +163,7 @@ trainCNN<-function()
   IFCB<-h2o.getFrame(H2O_DF_NAME)
   print("Training Deep Neural Network")
   NN_model = h2o.deeplearning(
-    x = 1:dimen*dimen,
+    x = 1:(dimen*dimen),
     training_frame = IFCB,
     hidden = c(400, 200, 100, 200, 400),
     epochs = 600,
