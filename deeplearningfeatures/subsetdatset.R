@@ -6,6 +6,8 @@ dimen<-64
 DS_PATH<-'../export/IFCB.csv'
 #Path to save a subset of the IFCB dataset
 SMALL_DS_PATH<-'export/IFCB_SMALL.csv'
+#Mean pixel value
+MEAN_PIXEL_VALUE<-'export/MEAN_PIXEL_VALUE.RData'
 #Model using a random forest with normal features
 RF_NORMALFEAT_MODEL<-"results/IFCB_SMALL_NORMALFEAT.RData"
 #Path to export the images in csv format for training the NN 
@@ -72,11 +74,18 @@ computeImageFileNames<-function(IFCB)
 
 computeMeanPixelValue<-function()
 {
+  library(EBImage)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 6)
   nImages<-10000
-  paths<-computeImageFileNames(IFCB)
+  IFCB<-fread(SMALL_DS_PATH)
   selected<-sample(paths,nImages)
-  ##Muy intersante readImage de EBImage las lee todas a la vez. Luego llamar a apply pa hacer la media
-  #serían dos lineas. Se puede cambiar también abajo seguro
+  paths<-paths[1:3]
+  meanpixels<-foreach (i=1:length(paths),.combine='c') %dopar%
+    mean(imageData(readImage(paths[i])))
+
+  save(meanpixel=mean(meanpixels),file = MEAN_PIXEL_VALUE)
 }
 
 #This parelelized function, iterates over all the images, resizes them and saves them in a csv
