@@ -149,7 +149,7 @@ loadDataH2O<-function()
 {
   library(h2o)
   h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
-  h2o.importFile("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/export/IFCB_SMALL_H2O_IMAGES.csv",destination_frame = H2O_DF_NAME)
+  h2o.importFile(paste("/Network/Servers/pomar.aic.uniovi.es/Volumes/VTRAK/Users/pomar_pgonzalez/Documents/Tesis/IFCB/IFCB_quantification/deeplearning/",H2O_DS_IMAGES,sep=""),destination_frame = H2O_DF_NAME)
 }
 
 #Trains an autoencoder and extracts the features (one NN layer). The idea is that this
