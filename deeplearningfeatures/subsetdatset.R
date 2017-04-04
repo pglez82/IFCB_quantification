@@ -6,6 +6,8 @@ dimen<-64
 DS_PATH<-'../export/IFCB.csv'
 #Path to save a subset of the IFCB dataset
 SMALL_DS_PATH<-'export/IFCB_SMALL.csv'
+#Mean pixel value
+MEAN_PIXEL_VALUE<-'export/MEAN_PIXEL_VALUE.RData'
 #Model using a random forest with normal features
 RF_NORMALFEAT_MODEL<-"results/IFCB_SMALL_NORMALFEAT.RData"
 #Path to export the images in csv format for training the NN 
@@ -72,11 +74,20 @@ computeImageFileNames<-function(IFCB)
 
 computeMeanPixelValue<-function()
 {
+  library(EBImage)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 6)
   nImages<-10000
+  IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
-  selected<-sample(paths,nImages)
-  ##Muy intersante readImage de EBImage las lee todas a la vez. Luego llamar a apply pa hacer la media
-  #serían dos lineas. Se puede cambiar también abajo seguro
+  #selected<-sample(paths,nImages)
+  paths<-paths[1:3]
+  meanpixels<-foreach (i=1:length(paths),.combine='c') %dopar%
+    mean(imageData(readImage(paths[i])))
+
+  mp<-mean(meanpixels)
+  save(mp,file = MEAN_PIXEL_VALUE)
 }
 
 #This parelelized function, iterates over all the images, resizes them and saves them in a csv
@@ -88,9 +99,12 @@ preprocessImagesForH2O<-function()
   library(doMC)
   registerDoMC(cores = 8)
   
-  
   IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
+  
+  #Load the value of the mean pixel previously computed. Stored in mp
+  load(MEAN_PIXEL_VALUE)
+  
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
   chunkSize<-10000
   nChunks<-length(paths)%/%chunkSize
@@ -104,7 +118,7 @@ preprocessImagesForH2O<-function()
     images<-foreach (i=chunkStart:chunkEnd,.combine='rbind')%dopar%
     {
       print(paste("Leyendo imagen",i))
-      m<-matrix(0,nrow = dimen,ncol=dimen)
+      m<-matrix(mp,nrow = dimen,ncol=dimen)
       image<-readImage(paths[i])
       originalDim<-dim(image)
       print(paste("Leida",originalDim))
