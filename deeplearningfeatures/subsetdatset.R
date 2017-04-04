@@ -168,7 +168,11 @@ trainCNN<-function()
     hidden = c(400, 200, 100, 200, 400),
     epochs = 600,
     activation = "Tanh",
+    standardize = FALSE, #default TRUE but I don't think is needed since all the values are between 0 and 1
+    rate=0.001,#default 0.005
     autoencoder = TRUE,
+    #stopping_metric = 'MSE',
+    shuffle_training_data=TRUE,
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
