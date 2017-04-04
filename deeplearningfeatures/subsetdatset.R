@@ -167,7 +167,7 @@ trainCNN<-function()
     training_frame = IFCB,
     hidden = c(200),
     epochs = 600,
-    activation = "Tanh",
+    #activation = "Tanh",
     standardize = FALSE, #default TRUE but I don't think is needed since all the values are between 0 and 1
     rate=0.001,#default 0.005
     autoencoder = TRUE,
