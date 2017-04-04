@@ -165,7 +165,7 @@ trainCNN<-function()
   NN_model = h2o.deeplearning(
     x = 1:(dimen*dimen),
     training_frame = IFCB,
-    hidden = c(400, 200, 100, 200, 400),
+    hidden = c(200),
     epochs = 600,
     activation = "Tanh",
     standardize = FALSE, #default TRUE but I don't think is needed since all the values are between 0 and 1
@@ -176,7 +176,7 @@ trainCNN<-function()
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
-  features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
+  features<-h2o.deepfeatures(NN_model, IFCB, layer=1)
   features<-as.data.frame(features)
   print("Done. Saving features to csv")
   IFCB_DF<-fread(H2O_DS_EXTRA)
