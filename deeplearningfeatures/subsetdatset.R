@@ -85,7 +85,7 @@ computeMeanPixelValue<-function()
   meanpixels<-foreach (i=1:length(paths),.combine='c') %dopar%
     mean(imageData(readImage(paths[i])))
 
-    mp<-mean(meanpixels)
+  mp<-mean(meanpixels)
   saveRDS(mp,file = MEAN_PIXEL_VALUE)
 }
 
@@ -97,6 +97,7 @@ preprocessImagesForH2O<-function()
   library(data.table)
   library(doMC)
   registerDoMC(cores = 8)
+  
   
   IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
