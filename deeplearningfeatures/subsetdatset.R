@@ -81,13 +81,12 @@ computeMeanPixelValue<-function()
   nImages<-10000
   IFCB<-fread(SMALL_DS_PATH)
   paths<-computeImageFileNames(IFCB)
-  #selected<-sample(paths,nImages)
-  paths<-paths[1:3]
+  selected<-sample(paths,nImages)
   meanpixels<-foreach (i=1:length(paths),.combine='c') %dopar%
     mean(imageData(readImage(paths[i])))
 
-  mp<-mean(meanpixels)
-  save(mp,file = MEAN_PIXEL_VALUE)
+    mp<-mean(meanpixels)
+  saveRDS(mp,file = MEAN_PIXEL_VALUE)
 }
 
 #This parelelized function, iterates over all the images, resizes them and saves them in a csv
@@ -103,7 +102,7 @@ preprocessImagesForH2O<-function()
   paths<-computeImageFileNames(IFCB)
   
   #Load the value of the mean pixel previously computed. Stored in mp
-  load(MEAN_PIXEL_VALUE)
+  mp<-readRDS(MEAN_PIXEL_VALUE)
   
   #We have 3.5 million images. We cannot fit them in memory. We break the loop in parts and we save partially the data to disk
   chunkSize<-10000
