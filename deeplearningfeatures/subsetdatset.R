@@ -143,7 +143,7 @@ preprocessImagesForH2O<-function()
     print("Saving done")
   }
 }
-  
+
 #Loads the data in H2O cluster prepared to be used by deep learning algorithms
 loadDataH2O<-function()
 {
@@ -165,7 +165,7 @@ trainCNN<-function()
   NN_model = h2o.deeplearning(
     x = 1:(dimen*dimen),
     training_frame = IFCB,
-    hidden = c(10),
+    hidden = c(20),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE,
@@ -195,11 +195,10 @@ exportReconstructedImages<-function()
   originals<-IFCB[1:5,]
   reconstructed<-as.data.frame(h2o.predict(model,originals))
   originals<-as.data.frame(originals)
-  writeImage(originals,subspaste("results/original",1:5,".png",sep=""))
   for (i in 1:nrow(originals))
   {
-    writeImage(matrix(originals[i,],ncol = dimen,nrow = dimen),paste("results/original",i,".png",sep=""))
-    writeImage(matrix(reconstructed[i,],ncol = dimen,nrow = dimen),paste("results/reconstructed",i,".png",sep=""))
+    writeImage(Image(matrix(originals[i,],ncol = dimen,nrow = dimen)),paste("results/original",i,".png",sep=""))
+    writeImage(Image(matrix(reconstructed[i,],ncol = dimen,nrow = dimen)),paste("results/reconstructed",i,".png",sep=""))
   }
 }
 
