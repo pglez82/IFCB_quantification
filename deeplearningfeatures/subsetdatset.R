@@ -167,15 +167,16 @@ trainCNN<-function()
   NN_model = h2o.deeplearning(
     x = 1:(dimen*dimen),
     training_frame = IFCB,
-    hidden = c(20),
+    hidden = c(500,200,100,200,500),
     epochs = 600,
     activation = "Tanh",
     autoencoder = TRUE,
     shuffle_training_data=TRUE,
+    stopping_rounds=100,
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
   print("Done. Computing features for images.")
-  features<-h2o.deepfeatures(NN_model, IFCB, layer=1)
+  features<-h2o.deepfeatures(NN_model, IFCB, layer=3)
   features<-as.data.frame(features)
   print("Done. Saving features to csv")
   IFCB_DF<-fread(H2O_DS_EXTRA)
@@ -194,6 +195,7 @@ exportReconstructedImages<-function()
   library(EBImage)
   h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
   model<-h2o.getModel('IFCB_AUTOENCODER_MODEL')
+  IFCB<-h2o.getFrame(H2O_DF_NAME)
   originals<-IFCB[1:5,]
   reconstructed<-as.data.frame(h2o.predict(model,originals))
   originals<-as.data.frame(originals)
@@ -230,9 +232,9 @@ testCombinedFeatures<-function()
   set.seed(7)
   IFCB_H2O<-fread(file=H2O_NN_FEATURES)
   IFCB_NORMAL<-fread(file=SMALL_DS_PATH)
-  y<-factor(IFCB_SMALL$Class)
-  x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
-  x<-cbind(IFCB_H2O[,c("Class","Sample","roi_number","Width","Height"):=NULL])
+  y<-factor(IFCB_NORMAL$Class)
+  x<-IFCB_NORMAL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  x<-cbind(x,IFCB_H2O[,c("Class","Sample","roi_number","Width","Height"):=NULL])
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
   save(model,file=RF_COMBINED_MODEL)
 }
