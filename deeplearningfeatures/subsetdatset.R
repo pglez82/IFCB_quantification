@@ -20,6 +20,8 @@ H2O_DF_NAME<-"IFCB_SMALL_H2O_IMAGES.hex"
 H2O_NN_FEATURES<-"export/H2O_FEATURES.csv"
 #Model using the features computed by the NN
 RF_NNFEAT_MODEL<-"results/IFCB_MODEL_H2O.RData"
+#deep features + normal features
+RF_COMBINED_MODEL<-"results/IFCB_MODEL_COMBINED.RData"
 
 #This function allows us to extract a smaller dataset from the IFCB dataset
 #The aim of the function is to test de DNN faster
@@ -213,7 +215,24 @@ testH2OFeatures<-function()
   set.seed(7)
   IFCB_H2O<-fread(file=H2O_NN_FEATURES)
   y<-factor(IFCB_H2O$Class)
-  x<-IFCB_H2O[,c("Class","Sample","roi_number"):=NULL]
+  x<-IFCB_H2O[,c("Class","Sample","roi_number","Width","Height"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
   save(model,file=RF_NNFEAT_MODEL)
+}
+
+#deep plus normal features
+testCombinedFeatures<-function()
+{
+  library(caret)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 15)
+  set.seed(7)
+  IFCB_H2O<-fread(file=H2O_NN_FEATURES)
+  IFCB_NORMAL<-fread(file=SMALL_DS_PATH)
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  x<-cbind(IFCB_H2O[,c("Class","Sample","roi_number","Width","Height"):=NULL])
+  model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
+  save(model,file=RF_COMBINED_MODEL)
 }
