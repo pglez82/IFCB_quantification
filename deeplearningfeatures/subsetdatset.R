@@ -57,7 +57,7 @@ testNormalFeatures<-function()
   library(doMC)
   registerDoMC(cores = 14)
   set.seed(7)
-  IFCB_SMALL<-fread(file=)
+  IFCB_SMALL<-fread(file=SMALL_DS_PATH)
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
@@ -165,13 +165,10 @@ trainCNN<-function()
   NN_model = h2o.deeplearning(
     x = 1:(dimen*dimen),
     training_frame = IFCB,
-    hidden = c(200),
+    hidden = c(10),
     epochs = 600,
-    #activation = "Tanh",
-    standardize = FALSE, #default TRUE but I don't think is needed since all the values are between 0 and 1
-    rate=0.001,#default 0.005
+    activation = "Tanh",
     autoencoder = TRUE,
-    #stopping_metric = 'MSE',
     shuffle_training_data=TRUE,
     model_id = "IFCB_AUTOENCODER_MODEL"
   )
@@ -187,6 +184,23 @@ trainCNN<-function()
   features$roi_number<-IFCB_DF$roi_number
   fwrite(as.data.frame(features),file = H2O_NN_FEATURES,nThread=12)
   print("Done.")
+}
+
+exportReconstructedImages<-function()
+{
+  library(h2o)
+  library(EBImage)
+  h2o.init(nthreads = -1, port = 54321, startH2O = FALSE,ip="pomar.aic.uniovi.es")
+  model<-h2o.getModel('IFCB_AUTOENCODER_MODEL')
+  originals<-IFCB[1:5,]
+  reconstructed<-as.data.frame(h2o.predict(model,originals))
+  originals<-as.data.frame(originals)
+  writeImage(originals,subspaste("results/original",1:5,".png",sep=""))
+  for (i in 1:nrow(originals))
+  {
+    writeImage(matrix(originals[i,],ncol = dimen,nrow = dimen),paste("results/original",i,".png",sep=""))
+    writeImage(matrix(reconstructed[i,],ncol = dimen,nrow = dimen),paste("results/reconstructed",i,".png",sep=""))
+  }
 }
 
 #With the features computed by the deep learning algorithm we train a RF caret
