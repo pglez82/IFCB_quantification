@@ -48,8 +48,8 @@ computeDeepFeatures<-function()
   
   #Hasta que no podamos con todo...
   ###################
-  set.seed(7)
-  IFCB<-IFCB[sample(nrow(IFCB),10000),]
+  #set.seed(7)
+  #IFCB<-IFCB[sample(nrow(IFCB),10000),]
   fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
   ###################
   
