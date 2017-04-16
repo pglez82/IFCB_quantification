@@ -63,7 +63,7 @@ computeDeepFeatures<-function()
   out <- mx.symbol.Group(t)
   
   print(paste('Computing features for all the images...',length(fileNames),"images"))
-  chunkSize<-2
+  chunkSize<-100
   nChunks<-length(fileNames)%/%chunkSize
   for (chunk in 1:nChunks)
   {
