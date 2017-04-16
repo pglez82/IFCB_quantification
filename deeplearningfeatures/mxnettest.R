@@ -38,8 +38,9 @@ computeDeepFeatures<-function()
   require(EBImage)
   require(mxnet)
   require(data.table)
+  require(doMC)
   source('subsetdatset.R')
-  
+  registerDoMC(cores = 10)
   RESULTS_FILE<-"resnetfeatures/deepfeatures.csv"
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
   
@@ -48,7 +49,7 @@ computeDeepFeatures<-function()
   #Hasta que no podamos con todo...
   ###################
   set.seed(7)
-  IFCB<-IFCB[sample(nrow(IFCB),3000),]
+  IFCB<-IFCB[sample(nrow(IFCB),10000),]
   fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
   ###################
   
@@ -60,12 +61,9 @@ computeDeepFeatures<-function()
   outputs<-internals$outputs
   t<-sapply(1:length(outputs), function(x){internals$get.output(x)})
   out <- mx.symbol.Group(t)
-  executor <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
-  mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
-  mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
   
   print(paste('Computing features for all the images...',length(fileNames),"images"))
-  chunkSize<-100
+  chunkSize<-2
   nChunks<-length(fileNames)%/%chunkSize
   for (chunk in 1:nChunks)
   {
@@ -74,13 +72,16 @@ computeDeepFeatures<-function()
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]",chunk,"/",nChunks))
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
-    res<- t(sapply(fileNames[chunkStart:chunkEnd],function(f){
-      im <- readImage(f)
+    res<- foreach (i=chunkStart:chunkEnd,.combine='rbind') %dopar%{
+      executor <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
+      mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
+      mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
+      im <- readImage(fileNames[i])
       normed <- preproc.image(im)
       mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
       mx.exec.forward(executor, is.train=FALSE)
-      as.array(executor$ref.outputs$flatten0_output)
-    }))
+      t(as.array(executor$ref.outputs$flatten0_output))
+    }
     print("Saving to file...")
     res<-data.table(res,Class=IFCB$Class[chunkStart:chunkEnd])
     fwrite(res,file = RESULTS_FILE,append = TRUE)
