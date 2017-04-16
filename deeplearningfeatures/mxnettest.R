@@ -1,15 +1,15 @@
 preproc.image <- function(im) {
   # crop the image
-  im<-add.colour(im)
+  im<-toRGB(im)
   shape <- dim(im)
   short.edge <- min(shape[1:2])
   xx <- floor((shape[1] - short.edge) / 2)
   yy <- floor((shape[2] - short.edge) / 2)
-  cropped <- crop.borders(im, xx, yy)
+  cropped<-im[(1+xx):(shape[1]-xx),(1+yy):(shape[2]-yy),]
   # resize to 224 x 224, needed by input of the model.
   resized <- resize(cropped, 224, 224)
   # convert to array (x, y, channel)
-  arr <- as.array(resized) * 255
+  arr <- round(as.array(resized) * 255)
   dim(arr) <- c(224, 224, 3)
   # subtract the mean
   normed <- arr#-117
@@ -35,7 +35,7 @@ testPredict<-function()
 #grabarlo en un csv y probar a entrenar.
 computeDeepFeatures<-function()
 {
-  require(imager)
+  require(EBImage)
   require(mxnet)
   require(data.table)
   source('subsetdatset.R')
@@ -48,7 +48,7 @@ computeDeepFeatures<-function()
   #Hasta que no podamos con todo...
   ###################
   set.seed(7)
-  IFCB<-IFCB[sample(nrow(IFCB),10000),]
+  IFCB<-IFCB[sample(nrow(IFCB),3000),]
   fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
   ###################
   
@@ -75,7 +75,7 @@ computeDeepFeatures<-function()
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
     res<- t(sapply(fileNames[chunkStart:chunkEnd],function(f){
-      im <- load.image(f)
+      im <- readImage(f)
       normed <- preproc.image(im)
       mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
       mx.exec.forward(executor, is.train=FALSE)
