@@ -40,7 +40,7 @@ computeDeepFeatures<-function()
   require(data.table)
   require(doMC)
   source('subsetdatset.R')
-  registerDoMC(cores = 10)
+  registerDoMC(cores = 15)
   RESULTS_FILE<-"resnetfeatures/deepfeatures.csv"
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
   
