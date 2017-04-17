@@ -38,9 +38,11 @@ computeDeepFeatures<-function()
   require(EBImage)
   require(mxnet)
   require(data.table)
+  require(itertools)
   require(doMC)
   source('subsetdatset.R')
-  registerDoMC(cores = 15)
+  nCores<-10
+  registerDoMC(cores = nCores)
   RESULTS_FILE<-"features/resnet50/deepfeatures.csv"
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
   
@@ -61,10 +63,9 @@ computeDeepFeatures<-function()
   outputs<-internals$outputs
   t<-sapply(1:length(outputs), function(x){internals$get.output(x)})
   out <- mx.symbol.Group(t)
-  executors<-list()
   
   print(paste('Computing features for all the images...',length(fileNames),"images"))
-  chunkSize<-200
+  chunkSize<-1000
   nChunks<-length(fileNames)%/%chunkSize
   for (chunk in 1:nChunks)
   {
@@ -73,20 +74,18 @@ computeDeepFeatures<-function()
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]",chunk,"/",nChunks))
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
-    res<- foreach(i=chunkStart:chunkEnd,.combine='rbind') %dopar%{
-      pid<-as.character(Sys.getpid())
-      if (is.null(executors[[pid]]))
+    res<-foreach(fs=isplitVector(fileNames[chunkStart:chunkEnd], chunks=nCores),.combine='rbind') %dopar%{
+      executor <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
+      mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
+      mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
+      t(sapply(fs,function(f)
       {
-        executors[[pid]] <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
-        mx.exec.update.arg.arrays(executors[[pid]], model$arg.params, match.name=TRUE)
-        mx.exec.update.aux.arrays(executors[[pid]], model$aux.params, match.name=TRUE)
-      }
-      
-      im <- readImage(fileNames[i])
-      normed <- preproc.image(im)
-      mx.exec.update.arg.arrays(executors[[pid]], list(data=mx.nd.array(normed)), match.name=TRUE)
-      mx.exec.forward(executors[[pid]], is.train=FALSE)
-      t(as.array(executors[[pid]]$ref.outputs$flatten0_output))
+        im <- readImage(f)
+        normed <- preproc.image(im)
+        mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
+        mx.exec.forward(executor, is.train=FALSE)
+        as.array(executor$ref.outputs$flatten0_output)    
+      }))
     }
     print("Saving to file...")
     res<-data.table(res,Class=IFCB$Class[chunkStart:chunkEnd])
@@ -122,7 +121,6 @@ testDeepFeatures<-function()
   model<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=10))
   save(model,file="features/resnet50/DEEP_MODEL.RData")
 }
-
 
 
 
