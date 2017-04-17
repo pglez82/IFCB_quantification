@@ -49,8 +49,8 @@ computeDeepFeatures<-function()
   #Hasta que no podamos con todo...
   ###################
   #set.seed(7)
-  #IFCB<-IFCB[sample(nrow(IFCB),10000),]
-  fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
+  #IFCB<-IFCB[sample(nrow(IFCB),4),]
+  #fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
   ###################
   
   fileNames<-computeImageFileNames(IFCB)
@@ -61,9 +61,10 @@ computeDeepFeatures<-function()
   outputs<-internals$outputs
   t<-sapply(1:length(outputs), function(x){internals$get.output(x)})
   out <- mx.symbol.Group(t)
+  executors<-list()
   
   print(paste('Computing features for all the images...',length(fileNames),"images"))
-  chunkSize<-100
+  chunkSize<-200
   nChunks<-length(fileNames)%/%chunkSize
   for (chunk in 1:nChunks)
   {
@@ -72,15 +73,20 @@ computeDeepFeatures<-function()
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]",chunk,"/",nChunks))
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
-    res<- foreach (i=chunkStart:chunkEnd,.combine='rbind') %dopar%{
-      executor <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
-      mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
-      mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
+    res<- foreach(i=chunkStart:chunkEnd,.combine='rbind') %do%{
+      pid<-as.character(Sys.getpid())
+      if (is.null(executors[[pid]]))
+      {
+        executors[[pid]] <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
+        mx.exec.update.arg.arrays(executors[[pid]], model$arg.params, match.name=TRUE)
+        mx.exec.update.aux.arrays(executors[[pid]], model$aux.params, match.name=TRUE)
+      }
+      
       im <- readImage(fileNames[i])
       normed <- preproc.image(im)
-      mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
-      mx.exec.forward(executor, is.train=FALSE)
-      t(as.array(executor$ref.outputs$flatten0_output))
+      mx.exec.update.arg.arrays(executors[[pid]], list(data=mx.nd.array(normed)), match.name=TRUE)
+      mx.exec.forward(executors[[pid]], is.train=FALSE)
+      t(as.array(executors[[pid]]$ref.outputs$flatten0_output))
     }
     print("Saving to file...")
     res<-data.table(res,Class=IFCB$Class[chunkStart:chunkEnd])
