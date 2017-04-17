@@ -73,7 +73,7 @@ computeDeepFeatures<-function()
     print(paste("Starting to process partition",chunk,"[",chunkStart,",",chunkEnd,"]",chunk,"/",nChunks))
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
-    res<- foreach(i=chunkStart:chunkEnd,.combine='rbind') %do%{
+    res<- foreach(i=chunkStart:chunkEnd,.combine='rbind') %dopar%{
       pid<-as.character(Sys.getpid())
       if (is.null(executors[[pid]]))
       {
