@@ -41,16 +41,16 @@ computeDeepFeatures<-function()
   require(doMC)
   source('subsetdatset.R')
   registerDoMC(cores = 15)
-  RESULTS_FILE<-"resnetfeatures/deepfeatures.csv"
+  RESULTS_FILE<-"features/resnet50/deepfeatures.csv"
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
   
   IFCB<-fread('export/IFCB_SMALL.csv')
   
   #Hasta que no podamos con todo...
   ###################
-  #set.seed(7)
-  #IFCB<-IFCB[sample(nrow(IFCB),4),]
-  #fwrite(IFCB,'resnetfeatures/normalfeatures.csv')
+  set.seed(7)
+  IFCB<-IFCB[sample(nrow(IFCB),10000),]
+  fwrite(IFCB,'features/resnet50/normalfeatures.csv')
   ###################
   
   fileNames<-computeImageFileNames(IFCB)
@@ -106,7 +106,7 @@ testNormalFeatures<-function()
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
   model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=10))
-  save(model,file="resnetfeatures/NORMAL_MODEL.RData")
+  save(model,file="features/resnet50/NORMAL_MODEL.RData")
 }
 
 testDeepFeatures<-function()
@@ -116,11 +116,11 @@ testDeepFeatures<-function()
   library(doMC)
   registerDoMC(cores = 15)
   set.seed(7)
-  IFCB_SMALL<-fread("resnetfeatures/deepfeatures.csv")
+  IFCB_SMALL<-fread("features/resnet50/deepfeatures.csv")
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
   model<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=10))
-  save(model,file="resnetfeatures/DEEP_MODEL.RData")
+  save(model,file="features/resnet50/DEEP_MODEL.RData")
 }
 
 
