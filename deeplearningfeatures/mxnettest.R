@@ -111,7 +111,7 @@ computeDeepFeatures<-function()
       t(sapply(fs,function(f)
       {
         im <- readImage(f)
-        normed <- preproc.image(im)
+        normed <- preproc.image2(im)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
         c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000)
