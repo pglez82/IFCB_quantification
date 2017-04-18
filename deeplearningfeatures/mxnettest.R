@@ -2,7 +2,7 @@
 dimx<-224
 dimy<-224
 #Neural network to be used. Must exist a directory inside 'models' with this name.
-model<-"resnet-50"
+modelName<-"resnet-50"
 
 #This function crops the image and resizes it to the desired dimension
 preproc.image <- function(im) {
@@ -16,8 +16,8 @@ preproc.image <- function(im) {
   # resize to 224 x 224, needed by input of the model.
   resized <- resize(cropped, dimx, dimy)
   # convert to array (x, y, channel)
-  arr <- round(as.array(resized) * 255)
-
+  arr <- round(as.array(resized) * 255)#-117
+  
   # Reshape to format needed by mxnet (width, height, channel, num)
   dim(arr) <- c(dimx, dimy, 3, 1)
   return(arr)
@@ -29,12 +29,12 @@ preproc.image2<-function(im)
   mp<-0.7019857
   m<-matrix(mp,nrow = dimx,ncol=dimy)
   originalDim<-dim(im)
-
+  
   if(originalDim[1]>originalDim[2])
     im<-resize(im,w = dimx)
   else
     im<-resize(im,h=dimy)
-    
+  
   startx<-(dimx-dim(im)[1])%/%2+1
   starty<-(dimy-dim(im)[2])%/%2+1
   data<-imageData(im)
@@ -48,12 +48,14 @@ preproc.image2<-function(im)
 #Just a test to see how predict works
 testPredict<-function()
 {
-  model = mx.model.load(paste("models/",model,"/resnet-50",sep=""), iteration=0)
-  im <- load.image("models/parrots.jpg")
+  require(mxnet)
+  require(EBImage)
+  model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=0)
+  im <- readImage("models/parrots.jpg")
   normed <- preproc.image(im)
   prob <- predict(model, X=normed)
   max.idx <- max.col(t(prob))
-  synsets <- readLines(paste("models/",model,"/synset.txt",sep=""))
+  synsets <- readLines(paste("models/",modelName,"/synset.txt",sep=""))
   print(paste0("Predicted Top-class: ", synsets  [[max.idx]]))
 }
 
@@ -73,8 +75,10 @@ computeDeepFeatures<-function()
   source('subsetdatset.R')
   nCores<-12
   registerDoMC(cores = nCores)
-  RESULTS_FILE<-paste("features/",model,"/deepfeatures.csv",sep="")
+  RESULTS_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
+  
+  start.time<-Sys.time()
   
   IFCB<-fread('export/IFCB_SMALL.csv')
   
@@ -82,13 +86,13 @@ computeDeepFeatures<-function()
   ###################
   set.seed(7)
   IFCB<-IFCB[sample(nrow(IFCB),10000),]
-  fwrite(IFCB,paste("features/",model,"/normalfeatures.csv",sep=""))
+  fwrite(IFCB,paste("features/",modelName,"/normalfeatures.csv",sep=""))
   ###################
   
   fileNames<-computeImageFileNames(IFCB)
   
   #Load model
-  model = mx.model.load(paste("models/",model,"/",model,sep=""), iteration=0)
+  model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=0)
   internals <- model$symbol$get.internals()
   outputs<-internals$outputs
   t<-sapply(1:length(outputs), function(x){internals$get.output(x)})
@@ -120,8 +124,9 @@ computeDeepFeatures<-function()
     print("Saving to file...")
     res<-data.table(res,Class=IFCB$Class[chunkStart:chunkEnd])
     fwrite(res,file = RESULTS_FILE,append = TRUE)
-    print("Saving done")
+    print("Saving done")  
   }
+  print(Sys.time() - start.time)
 }
 
 #Test normal features in order to compare
@@ -132,11 +137,11 @@ testNormalFeatures<-function()
   library(doMC)
   registerDoMC(cores = 15)
   set.seed(7)
-  IFCB_SMALL<-fread(paste("features/",model,"/normalfeatures.csv",sep=""))
+  IFCB_SMALL<-fread(paste("features/",modelName,"/10000/normalfeatures.csv",sep=""))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
-  model<-train(x,y,method="rf", trControl=trainControl(method="cv",number=5))
-  save(model,file=paste("features/",model,"/NORMAL_MODEL.RData",sep=""))
+  modelCaret<-train(x,y,method="rf", trControl=trainControl(method="cv",number=10,trim=TRUE,indexFinal=1:100))
+  save(modelCaret,file=paste("features/",modelName,"/10000/NORMAL_MODEL.RData",sep=""))
 }
 
 #Test deep features
@@ -145,12 +150,14 @@ testDeepFeatures<-function()
   library(caret)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 5)
+  print("Training with deep features...")
+  registerDoMC(cores = 10)
+  start.time <- Sys.time()
   set.seed(7)
-  IFCB_SMALL<-fread(paste("features/",model,"/deepfeatures.csv",sep=""))
+  IFCB_SMALL<-fread(paste("features/",modelName,"/deepfeatures.csv",sep=""))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
-  rm(IFCB_SMALL)
-  model<-train(x,y,method="svmLinear", trControl=trainControl(method="cv"))
-  save(model,file=paste("features/",model,"/DEEP_MODEL.RData",sep=""))
+  modelCaret<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=10,verboseIter=TRUE,trim=TRUE,indexFinal=1:100))
+  save(modelCaret,file=paste("features/",modelName,"/DEEP_MODEL.RData",sep=""))
+  print(Sys.time() - start.time)
 }
