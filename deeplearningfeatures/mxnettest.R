@@ -2,7 +2,7 @@
 dimx<-224
 dimy<-224
 #Neural network to be used. Must exist a directory inside 'models' with this name.
-modelName<-"resnet-50"
+modelName<-"squeezenet_v1.1"
 
 #This function crops the image and resizes it to the desired dimension
 preproc.image <- function(im) {
@@ -16,7 +16,7 @@ preproc.image <- function(im) {
   # resize to 224 x 224, needed by input of the model.
   resized <- resize(cropped, dimx, dimy)
   # convert to array (x, y, channel)
-  arr <- round(as.array(resized) * 255)#-117
+  arr <- round(as.array(resized) * 255)-170
   
   # Reshape to format needed by mxnet (width, height, channel, num)
   dim(arr) <- c(dimx, dimy, 3, 1)
@@ -40,7 +40,7 @@ preproc.image2<-function(im)
   data<-imageData(im)
   m[startx:(startx+dim(im)[1]-1),starty:(starty+dim(im)[2]-1)]=imageData(im)
   im<-toRGB(as.Image(m))
-  arr <- round(as.array(im) * 255)
+  arr <- round(as.array(im) * 255)-170
   dim(arr) <- c(dimx, dimy, 3, 1)
   return(arr)
 }
@@ -85,8 +85,8 @@ computeDeepFeatures<-function()
   #Hasta que no podamos con todo...
   ###################
   set.seed(7)
-  #IFCB<-IFCB[sample(nrow(IFCB),10000),]
-  #fwrite(IFCB,paste("features/",modelName,"/normalfeatures.csv",sep=""))
+  IFCB<-IFCB[sample(nrow(IFCB),10000),]
+  fwrite(IFCB,paste("features/",modelName,"/normalfeatures.csv",sep=""))
   ###################
   
   fileNames<-computeImageFileNames(IFCB)
@@ -118,7 +118,7 @@ computeDeepFeatures<-function()
         normed <- preproc.image2(im)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
-        c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000)
+        c(as.array(executor$ref.outputs$flatten_output),dim(im)[1:2]/1000)
       }))
     }
     print("Saving to file...")
@@ -151,13 +151,13 @@ testDeepFeatures<-function()
   library(data.table)
   library(doMC)
   print("Training with deep features...")
-  registerDoMC(cores = 5)
+  registerDoMC(cores = 10)
   start.time <- Sys.time()
   set.seed(7)
   IFCB_SMALL<-fread(paste("features/",modelName,"/deepfeatures.csv",sep=""))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
-  modelCaret<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=5,verboseIter=TRUE,trim=TRUE,indexFinal=1:100))
+  modelCaret<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=10,verboseIter=TRUE,trim=TRUE,indexFinal=1:100))
   save(modelCaret,file=paste("features/",modelName,"/DEEP_MODEL.RData",sep=""))
   print(Sys.time() - start.time)
 }
