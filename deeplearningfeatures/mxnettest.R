@@ -1,3 +1,10 @@
+#Dimension needed for the images in the neural network
+dimx<-224
+dimy<-224
+#Neural network to be used. Must exist a directory inside 'models' with this name.
+model<-"resnet-50"
+
+#This function crops the image and resizes it to the desired dimension
 preproc.image <- function(im) {
   # crop the image
   im<-toRGB(im)
@@ -7,34 +14,54 @@ preproc.image <- function(im) {
   yy <- floor((shape[2] - short.edge) / 2)
   cropped<-im[(1+xx):(shape[1]-xx),(1+yy):(shape[2]-yy),]
   # resize to 224 x 224, needed by input of the model.
-  resized <- resize(cropped, 224, 224)
+  resized <- resize(cropped, dimx, dimy)
   # convert to array (x, y, channel)
   arr <- round(as.array(resized) * 255)
-  dim(arr) <- c(224, 224, 3)
-  # subtract the mean
-  normed <- arr#-117
+
   # Reshape to format needed by mxnet (width, height, channel, num)
-  dim(normed) <- c(224, 224, 3, 1)
-  return(normed)
+  dim(arr) <- c(dimx, dimy, 3, 1)
+  return(arr)
 }
 
+#This function pads the image and resizes it to the desired dimension
+preproc.image2<-function(im)
+{
+  mp<-0.7019857
+  m<-matrix(mp,nrow = dimx,ncol=dimy)
+  originalDim<-dim(im)
+
+  if(originalDim[1]>originalDim[2])
+    im<-resize(im,w = dimx)
+  else
+    im<-resize(im,h=dimy)
+    
+  startx<-(dimx-dim(im)[1])%/%2+1
+  starty<-(dimy-dim(im)[2])%/%2+1
+  data<-imageData(im)
+  m[startx:(startx+dim(im)[1]-1),starty:(starty+dim(im)[2]-1)]=imageData(im)
+  im<-toRGB(as.Image(m))
+  arr <- round(as.array(im) * 255)
+  dim(arr) <- c(dimx, dimy, 3, 1)
+  return(arr)
+}
+
+#Just a test to see how predict works
 testPredict<-function()
 {
-  model = mx.model.load("models/resnet50/resnet-50", iteration=0)
+  model = mx.model.load(paste("models/",model,"/resnet-50",sep=""), iteration=0)
   im <- load.image("models/parrots.jpg")
   normed <- preproc.image(im)
   prob <- predict(model, X=normed)
   max.idx <- max.col(t(prob))
-  synsets <- readLines("models/resnet50/synset.txt")
+  synsets <- readLines(paste("models/",model,"/synset.txt",sep=""))
   print(paste0("Predicted Top-class: ", synsets  [[max.idx]]))
 }
 
-
-model<-"resnet-50"
-
-
-#imagen de prueba para probar. Esto saca los valores de cualquier capa de nuestra red. Ahora solo queda paralelizar y calcularlo en todas las imagenes
-#grabarlo en un csv y probar a entrenar.
+#This function computes the deep features from one of the last layers in CNN. 
+#This function is heavily paralelized. We save the progress from time to time because
+#we cannot fit everything into memory. 
+#The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
+#destroying workers to fast
 computeDeepFeatures<-function()
 {
   require(EBImage)
@@ -42,6 +69,7 @@ computeDeepFeatures<-function()
   require(data.table)
   require(itertools)
   require(doMC)
+  #We need the function computeFileNames to process the images
   source('subsetdatset.R')
   nCores<-12
   registerDoMC(cores = nCores)
@@ -52,8 +80,8 @@ computeDeepFeatures<-function()
   
   #Hasta que no podamos con todo...
   ###################
-  #set.seed(7)
-  #IFCB<-IFCB[sample(nrow(IFCB),10000),]
+  set.seed(7)
+  IFCB<-IFCB[sample(nrow(IFCB),10000),]
   fwrite(IFCB,paste("features/",model,"/normalfeatures.csv",sep=""))
   ###################
   
@@ -77,7 +105,7 @@ computeDeepFeatures<-function()
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
     res<-foreach(fs=isplitVector(fileNames[chunkStart:chunkEnd], chunks=nCores),.combine='rbind') %dopar%{
-      executor <- mx.simple.bind(symbol=out, data=c(224,224,3,1), ctx=mx.cpu())
+      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.cpu())
       mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)
@@ -86,7 +114,7 @@ computeDeepFeatures<-function()
         normed <- preproc.image(im)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
-        c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2])
+        c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000)
       }))
     }
     print("Saving to file...")
@@ -96,6 +124,7 @@ computeDeepFeatures<-function()
   }
 }
 
+#Test normal features in order to compare
 testNormalFeatures<-function()
 {
   library(caret)
@@ -110,6 +139,7 @@ testNormalFeatures<-function()
   save(model,file=paste("features/",model,"/NORMAL_MODEL.RData",sep=""))
 }
 
+#Test deep features
 testDeepFeatures<-function()
 {
   library(caret)
@@ -121,6 +151,6 @@ testDeepFeatures<-function()
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
   rm(IFCB_SMALL)
-  model<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=5),tuneGrid=expand.grid(C = c(0.1,1,10)))
+  model<-train(x,y,method="svmLinear", trControl=trainControl(method="cv"))
   save(model,file=paste("features/",model,"/DEEP_MODEL.RData",sep=""))
 }
