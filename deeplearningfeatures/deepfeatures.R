@@ -4,46 +4,7 @@ dimy<-224
 #Neural network to be used. Must exist a directory inside 'models' with this name.
 modelName<-"resnet-18"
 
-#This function crops the image and resizes it to the desired dimension
-preproc.image <- function(im) {
-  # crop the image
-  im<-toRGB(im)
-  shape <- dim(im)
-  short.edge <- min(shape[1:2])
-  xx <- floor((shape[1] - short.edge) / 2)
-  yy <- floor((shape[2] - short.edge) / 2)
-  cropped<-im[(1+xx):(shape[1]-xx),(1+yy):(shape[2]-yy),]
-  # resize to 224 x 224, needed by input of the model.
-  resized <- resize(cropped, dimx, dimy)
-  # convert to array (x, y, channel)
-  arr <- round(as.array(resized) * 255)#-170
-  
-  # Reshape to format needed by mxnet (width, height, channel, num)
-  dim(arr) <- c(dimx, dimy, 3, 1)
-  return(arr)
-}
 
-#This function pads the image and resizes it to the desired dimension
-preproc.image2<-function(im)
-{
-  mp<-0.7019857
-  m<-matrix(mp,nrow = dimx,ncol=dimy)
-  originalDim<-dim(im)
-  
-  if(originalDim[1]>originalDim[2])
-    im<-resize(im,w = dimx)
-  else
-    im<-resize(im,h=dimy)
-  
-  startx<-(dimx-dim(im)[1])%/%2+1
-  starty<-(dimy-dim(im)[2])%/%2+1
-  data<-imageData(im)
-  m[startx:(startx+dim(im)[1]-1),starty:(starty+dim(im)[2]-1)]=imageData(im)
-  im<-toRGB(as.Image(m))
-  arr <- round(as.array(im) * 255)#-170
-  dim(arr) <- c(dimx, dimy, 3, 1)
-  return(arr)
-}
 
 #Just a test to see how predict works
 testPredict<-function()
@@ -52,7 +13,7 @@ testPredict<-function()
   require(EBImage)
   model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=0)
   im <- readImage("models/dog.jpg")
-  normed <- preproc.image(im)
+  normed <- preproc.image(im,dimx,dimy)
   prob <- predict(model, X=normed)
   max.idx <- max.col(t(prob))
   synsets <- readLines(paste("models/",modelName,"/synset.txt",sep=""))
@@ -72,7 +33,7 @@ computeDeepFeatures<-function()
   require(itertools)
   require(doMC)
   #We need the function computeFileNames to process the images
-  source('subsetdatset.R')
+  source('utils.R')
   nCores<-12
   registerDoMC(cores = nCores)
   RESULTS_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
@@ -121,7 +82,7 @@ computeDeepFeatures<-function()
       t(sapply(fs,function(f)
       {
         im <- readImage(f)
-        normed <- preproc.image2(im)
+        normed <- preproc.image(im,dimx,dimy)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
         c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000)

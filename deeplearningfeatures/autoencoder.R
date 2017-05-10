@@ -37,13 +37,7 @@ testNormalFeatures<-function()
   save(model,file=RF_NORMALFEAT_MODEL)
 }
 
-#Get the file names in order to process all the images for deep learning
-computeImageFileNames<-function(IFCB)
-{
-  #Get the year
-  year<-sapply(strsplit(IFCB$Sample,"_"),"[[",2)
-  return(paste("../../data/",year,"/",IFCB$OriginalClass,"/",IFCB$Sample,"_",formatC(IFCB$roi_number, width=5, flag="0"),".png",sep=""))
-}
+
 
 #Function to compute the mean pixel value.
 computeMeanPixelValue<-function()
