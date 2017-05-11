@@ -7,7 +7,9 @@ computeImageFileNames<-function(IFCB)
 }
 
 #This function pads the image and resizes it to the desired dimension
-preproc.image<-function(im,dimx,dimy)
+#This function returns by default a three dimensional matrix with values from 1 to 255. Thats the input
+#of more of the nets. If we want to return the EBImage just pass returnImage = TRUE
+preproc.image<-function(im,dimx,dimy,returnImage=FALSE)
 {
   mp<-0.7019857
   m<-matrix(mp,nrow = dimx,ncol=dimy)
@@ -23,7 +25,12 @@ preproc.image<-function(im,dimx,dimy)
   data<-imageData(im)
   m[startx:(startx+dim(im)[1]-1),starty:(starty+dim(im)[2]-1)]=imageData(im)
   im<-toRGB(as.Image(m))
-  arr <- round(as.array(im) * 255)#-170
-  dim(arr) <- c(dimx, dimy, 3, 1)
-  return(arr)
+  if (returnImage)
+    return(im)
+  else
+  {
+    arr <- round(as.array(im) * 255)#-170
+    dim(arr) <- c(dimx, dimy, 3, 1)
+    return(arr)
+  }
 }
