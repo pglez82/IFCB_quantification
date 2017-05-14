@@ -10,7 +10,7 @@ prepareImagesForFineTunning<-function()
   require(doMC)
   #We need the function computeFileNames to process the images
   source('utils.R')
-  nCores<-8
+  nCores<-2
   registerDoMC(cores = nCores)
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   
@@ -18,10 +18,8 @@ prepareImagesForFineTunning<-function()
   fileNames$Class<-IFCB_SMALL$Class
   set.seed(7)
   fileNames$spl<-sample.split(fileNames$Class,SplitRatio=0.8)  
-  IFCB_SMALL_TRAIN<-IFCB_SMALL[filenames$spl,]
-  IFCB_SMALL_TEST<-IFCB_SMALL[filenames$spl,]
-  fwrite(IFCB_SMALL_TRAIN,file = 'export/IFCB_SMALL_TRAIN.csv')
-  fwrite(IFCB_SMALL_TEST,file = 'export/IFCB_SMALL_TEST.csv')
+  fwrite(which(fileNames$spl),file = "export/IFCB_SMALL_INDEXTRAIN.csv")
+  write.table(which(fileNames$spl),file = "export/IFCB_SMALL_INDEXTRAIN.csv",col.names = FALSE,row.names = FALSE)
   
   print("Starting processing...")
   foreach(fs=isplitRows(fileNames, chunks=nCores)) %dopar%
@@ -39,11 +37,19 @@ prepareImagesForFineTunning<-function()
   }
 }
 
-packFilesForMxNet<-function()
+#Compare normal features, with deeplearning features and with finetuned deeplearning features
+compareModels<-function()
 {
-  #create the list (we executed this in console eventhough it could be embedded inside R.
-  #We need to have mxnet compiled for python. It takes a while.
-  #python ~/mxnet/tools/im2rec.py ifcb resized/train --list True --recursive True --train-ratio .8 --exts .png
-  #python ~/mxnet/tools/im2rec.py ifcb_train.lst resized/train --pass-through True --num-thread 2
-  #python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/train --pass-through True --num-thread 2
+  library(caret)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 2)
+  
+  #Load datasets
+  IFCB_TRAIN<-fread('export/IFCB_SMALL_TRAIN.csv')
+  IFCB_TEST<-fread('export/IFCB_SMALL_TEST.csv')
+  
+  y<-factor(IFCB_SMALL_TRAIN$Class)
+  x<-IFCB_SMALL_TRAIN[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  model_rf<-train(x,y,method="rf",trControl=trainControl(method="none"))
 }
