@@ -34,7 +34,7 @@ computeDeepFeatures<-function(modelName="resnet-18")
   require(doMC)
   #We need the function computeFileNames to process the images
   source('utils.R')
-  nCores<-1
+  nCores<-12
   registerDoMC(cores = nCores)
   RESULTS_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
@@ -76,7 +76,7 @@ computeDeepFeatures<-function(modelName="resnet-18")
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
     res<-foreach(fs=isplitVector(fileNames[chunkStart:chunkEnd], chunks=nCores),.combine='rbind') %dopar%{
-      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.gpu(0))
+      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.cpu())
       mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)
