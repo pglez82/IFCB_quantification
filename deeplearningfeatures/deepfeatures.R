@@ -25,7 +25,7 @@ testPredict<-function()
 #we cannot fit everything into memory. 
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
 #destroying workers to fast
-computeDeepFeatures<-function()
+computeDeepFeatures<-function(modelName="resnet-18")
 {
   require(EBImage)
   require(mxnet)
@@ -34,17 +34,17 @@ computeDeepFeatures<-function()
   require(doMC)
   #We need the function computeFileNames to process the images
   source('utils.R')
-  nCores<-12
+  nCores<-1
   registerDoMC(cores = nCores)
   RESULTS_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
   
   start.time<-Sys.time()
   
-  #IFCB<-fread('export/IFCB_SMALL.csv')
-  IFCB<-fread('../export/IFCB.csv')
+  IFCB<-fread('export/IFCB_SMALL.csv')
+  #IFCB<-fread('../export/IFCB.csv')
   #We need the original class because the file names are based on this class
-  IFCB$OriginalClass<-readRDS('../IFCB.RData')$OriginalClass  
+  #IFCB$OriginalClass<-readRDS('../IFCB.RData')$OriginalClass  
   
   #Hasta que no podamos con todo...
   ###################
@@ -76,7 +76,7 @@ computeDeepFeatures<-function()
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
     res<-foreach(fs=isplitVector(fileNames[chunkStart:chunkEnd], chunks=nCores),.combine='rbind') %dopar%{
-      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.cpu())
+      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.gpu(0))
       mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)

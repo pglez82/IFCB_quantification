@@ -42,15 +42,36 @@ compareModels<-function()
   library(caret)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 2)
+  registerDoMC(cores = 3)
   
   #Load dataset
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
   
-  y<-factor(IFCB_SMALL_TRAIN$Class)
-  x<-IFCB_SMALL_TRAIN[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
-  model_rf<-train(x,y,method="rf",trControl=trainControl(method="cv",index = list(index_train)))
+  #train random forest with normal features
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  model_rf<-train(x,y,method="rf",trControl=trainControl(method="cv",index = list(index_train$V1)))
+  save(model_rf,file="results/IFCB_SMALL_RF.RData")
+  
+  #compute deeplearning features and train a svm linear
+  source('deepfeatures.R')
+  computeDeepFeatures(modelName = "resnet-18")
+  IFCB_SMALL<-fread("features/resnet-18/deepfeatures.csv")
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class"):=NULL]
+  model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
+  save(model_deep,file="results/IFCB_SMALL_DEEP.RData")
+  
+  #fine-tunning
+  computeDeepFeatures(modelName = "resnet-18b")
+  IFCB_SMALL<-fread("features/resnet-18b/deepfeatures.csv")
+  y<-factor(IFCB_SMALL$Class)
+  x<-IFCB_SMALL[,c("Class"):=NULL]
+  model_deep_fit<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
+  save(model_deep_fit,file="results/IFCB_SMALL_DEEP_FIT.RData")
+  
+  
   
   
   
