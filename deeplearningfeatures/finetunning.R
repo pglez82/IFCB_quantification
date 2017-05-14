@@ -18,7 +18,6 @@ prepareImagesForFineTunning<-function()
   fileNames$Class<-IFCB_SMALL$Class
   set.seed(7)
   fileNames$spl<-sample.split(fileNames$Class,SplitRatio=0.8)  
-  fwrite(which(fileNames$spl),file = "export/IFCB_SMALL_INDEXTRAIN.csv")
   write.table(which(fileNames$spl),file = "export/IFCB_SMALL_INDEXTRAIN.csv",col.names = FALSE,row.names = FALSE)
   
   print("Starting processing...")
@@ -45,11 +44,17 @@ compareModels<-function()
   library(doMC)
   registerDoMC(cores = 2)
   
-  #Load datasets
-  IFCB_TRAIN<-fread('export/IFCB_SMALL_TRAIN.csv')
-  IFCB_TEST<-fread('export/IFCB_SMALL_TEST.csv')
+  #Load dataset
+  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
   
   y<-factor(IFCB_SMALL_TRAIN$Class)
   x<-IFCB_SMALL_TRAIN[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
-  model_rf<-train(x,y,method="rf",trControl=trainControl(method="none"))
+  model_rf<-train(x,y,method="rf",trControl=trainControl(method="cv",index = list(index_train)))
+  
+  
+  
+
+  
+  
 }
