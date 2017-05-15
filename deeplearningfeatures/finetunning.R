@@ -66,28 +66,10 @@ trainDeepFeat<-function(modelN,it=0)
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
   
-  computeDeepFeatures(modelName = modelN)
-  IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
-  y<-factor(IFCB_SMALL$Class)
-  x<-IFCB_SMALL[,c("Class"):=NULL]
-  model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
-  save(model_deep,file="results/IFCB_SMALL_DEEP.RData")
-}
-
-trainDeepFeatFT<-function(modelN,it=0)
-{
-  require(caret)
-  require(data.table)
-  source('deepfeatures.R')
-  
-  #Load dataset
-  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
-  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
-  
   computeDeepFeatures(modelName = modelN,it)
   IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
-  model_deep_fit<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
-  save(model_deep_fit,file="results/IFCB_SMALL_DEEP_FIT.RData")
+  model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
+  save(model_deep,file=paste0("results/IFCB_SMALL_DEEP",modelN,".RData"))
 }
