@@ -58,8 +58,10 @@ trainRF<-function()
 
 trainDeepFeat<-function(modelN,it=0)
 { 
-  #compute deeplearning features and train a svm linear
+  require(caret)
+  require(data.table)
   source('deepfeatures.R')
+  
   #Load dataset
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
@@ -75,6 +77,9 @@ trainDeepFeat<-function(modelN,it=0)
 trainDeepFeatFT<-function(modelN,it=0)
 {
   require(caret)
+  require(data.table)
+  source('deepfeatures.R')
+  
   #Load dataset
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
