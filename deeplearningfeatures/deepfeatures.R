@@ -25,7 +25,7 @@ testPredict<-function()
 #we cannot fit everything into memory. 
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
 #destroying workers to fast
-computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1)
+computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu())
 {
   require(EBImage)
   require(mxnet)
@@ -75,7 +75,7 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1)
     #if we are in the last chunk, compute the rest of the images
     if (chunk==nChunks) chunkEnd<-length(fileNames)
     res<-foreach(fs=isplitVector(fileNames[chunkStart:chunkEnd], chunks=nCores),.combine='rbind') %dopar%{
-      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=mx.cpu())
+      executor <- mx.simple.bind(symbol=out, data=c(dimx,dimy,3,1), ctx=device)
       mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)
