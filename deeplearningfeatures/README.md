@@ -26,6 +26,6 @@ python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/train --pass-through True --
 3. With the rec files, we finetune the network. This is done in python, via the following command:
 ```bash
 python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model models/resnet-18/resnet-18 --gpus 0 --data-train ../../ifcb_train.rec --data-val ../../ifcb_val.rec --load-epoch 0 --random-crop 0 --random-mirror 0 --rgb-mean 0,0,0 --num-classes 30 --model-prefix models/resnet-18c/resnet-18b --batch-size 32 --num-examples 17664 --layer-before-fullc 'flatten0'
+```
 
 4. Test the new CNN and compare it against the off-the-shelf CNN. For that I have implemented two methods *trainRF()* and *trainDeepFeatures()*. For these methods we can use the 20% examples left appart in order to make a quick test on them.
-```
