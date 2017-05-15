@@ -37,7 +37,8 @@ prepareImagesForFineTunning<-function()
 }
 
 #Compare normal features, with deeplearning features and with finetuned deeplearning features
-compareModels<-function()
+#Model with  normal features
+trainRF<-function()
 {
   library(caret)
   library(data.table)
@@ -53,29 +54,35 @@ compareModels<-function()
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
   model_rf<-train(x,y,method="rf",trControl=trainControl(method="cv",index = list(index_train$V1)))
   save(model_rf,file="results/IFCB_SMALL_RF.RData")
-  
+}
+
+trainDeepFeat<-function(modelN,it=0)
+{ 
   #compute deeplearning features and train a svm linear
   source('deepfeatures.R')
-  computeDeepFeatures(modelName = "resnet-18")
-  IFCB_SMALL<-fread("features/resnet-18/deepfeatures.csv")
+  #Load dataset
+  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
+  
+  computeDeepFeatures(modelName = modelN)
+  IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
   model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
   save(model_deep,file="results/IFCB_SMALL_DEEP.RData")
+}
+
+trainDeepFeatFT<-function(modelN,it=0)
+{
+  require(caret)
+  #Load dataset
+  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
   
-  #fine-tunning
-  computeDeepFeatures(modelName = "resnet-18b")
-  IFCB_SMALL<-fread("features/resnet-18b/deepfeatures.csv")
+  computeDeepFeatures(modelName = modelN,it)
+  IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
   model_deep_fit<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
   save(model_deep_fit,file="results/IFCB_SMALL_DEEP_FIT.RData")
-  
-  
-  
-  
-  
-
-  
-  
 }

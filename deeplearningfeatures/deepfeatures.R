@@ -25,7 +25,7 @@ testPredict<-function()
 #we cannot fit everything into memory. 
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
 #destroying workers to fast
-computeDeepFeatures<-function(modelName="resnet-18")
+computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1)
 {
   require(EBImage)
   require(mxnet)
@@ -34,7 +34,6 @@ computeDeepFeatures<-function(modelName="resnet-18")
   require(doMC)
   #We need the function computeFileNames to process the images
   source('utils.R')
-  nCores<-12
   registerDoMC(cores = nCores)
   RESULTS_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
   if (file.exists(RESULTS_FILE)) file.remove(RESULTS_FILE)
@@ -59,7 +58,7 @@ computeDeepFeatures<-function(modelName="resnet-18")
   gc()  
   
   #Load model
-  model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=0)
+  model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=it)
   internals <- model$symbol$get.internals()
   outputs<-internals$outputs
   t<-sapply(1:length(outputs), function(x){internals$get.output(x)})
