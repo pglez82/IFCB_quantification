@@ -56,7 +56,7 @@ trainRF<-function()
   save(model_rf,file="results/IFCB_SMALL_RF.RData")
 }
 
-trainDeepFeat<-function(modelN,it=0)
+trainDeepFeat<-function(modelN,it=0,nCores=1,device=mx.gpu())
 { 
   require(caret)
   require(data.table)
@@ -66,7 +66,7 @@ trainDeepFeat<-function(modelN,it=0)
   IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
   index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
   
-  computeDeepFeatures(modelName = modelN,it)
+  computeDeepFeatures(modelName = modelN,it,nCores,device)
   IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class"):=NULL]
