@@ -6,7 +6,7 @@ The steps that have been followed in order to adapt this dataset for quantificat
 
 ##Data preparation
 
-All functions needed to process the data are in the file buildRData.R. The steps are the following:
+All functions needed to process the data are in the file **buildRData.R**. The steps are the following:
 
 1. Read the images and from the download directory and process them (see function *buildBaseData()*)
 2. For quantification we need only the complete samples. In total we have more than 5000 samples but only 964 are complete (the list is in FULLY_ANNOTATED.RData). In this step we download the features of each image in the complete samples. The features are downloaded as CSV files from the IFCB Dashboard (see function *downloadFeatures()*)
