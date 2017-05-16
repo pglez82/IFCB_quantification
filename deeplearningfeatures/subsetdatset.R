@@ -37,7 +37,7 @@ extractSmallerDataset<-function()
   }
   
   set.seed(7)
-  ind <- createSets(IFCB_SMALL, IFCB_SMALL$Class, 50000)
+  ind <- createSets(IFCB_SMALL, IFCB_SMALL$Class, 50000) #We wont get so much examples because there are classes with few examples
   
   IFCB_SMALL <- IFCB_SMALL[ind,]
   fwrite(IFCB_SMALL,SMALL_DS_PATH,nThread=12)

@@ -16,16 +16,17 @@ We have found this approach to work quite well in a subset of the data.
 
 An atempt to improve the latter could be done adjusting the CNN to our data (fine-tuning). This implementation in in the file **finetuning.r**. The steps here are the following:
 
-1. Prepare the images for be feeded to the CNN. As we do not have good GPUs to retrain the network with lots of data, we make a subset of 23600 images. These images are processed by the function `prepareImagesForFineTunning()`. Here the images are squared and resized. We separate the images into training (80%) and testing (20%).
-2. Make the rec files for mxnet. The commands are the following:
+1. Prepare the images for be feeded to the CNN. As we do not have good GPUs to retrain the network with lots of data, we make a subset of 36918 images using the function `extractSmallerDataset()` in the file **subsetdataset.R**. All the images selected here are from the years 2006, 2007 and 2008. These will be used after in the full experiments as training set, never for testing as results might be biased.
+2. These images are processed by the function `prepareImagesForFineTunning()`. Here the images are squared and resized. We separate the images into training (80%) and testing (20%).
+3. Make the rec files for mxnet. The commands are the following:
 ```bash
 python ~/mxnet/tools/im2rec.py ifcb resized/train --list True --recursive True --train-ratio .8 --exts .png
 python ~/mxnet/tools/im2rec.py ifcb_train.lst resized/train --pass-through True --num-thread 2
 python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/train --pass-through True --num-thread 2
 ```
-3. With the rec files, we finetune the network. This is done in python, via the following command:
+4. With the rec files, we finetune the network. This is done in python, via the following command:
 ```bash
-python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model models/resnet-18/resnet-18 --gpus 0 --data-train ../../ifcb_train.rec --data-val ../../ifcb_val.rec --load-epoch 0 --random-crop 0 --random-mirror 0 --rgb-mean 0,0,0 --num-classes 30 --model-prefix models/resnet-18ft/resnet-18ft --batch-size 32 --num-examples 17664 --layer-before-fullc 'flatten0'
+python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model models/resnet-18/resnet-18 --gpus 0 --data-train ../../ifcb_train.rec --data-val ../../ifcb_val.rec --load-epoch 0 --random-crop 0 --random-mirror 0 --num-epochs 10 --rgb-mean 0,0,0 --num-classes 24 --model-prefix models/resnet-18-10/resnet-18-10 --batch-size 32 --num-examples 23624 --layer-before-fullc 'flatten0'
 ```
 
-4. Test the new CNN and compare it against the off-the-shelf CNN. For that I have implemented two methods *trainRF()* and *trainDeepFeatures()*. For these methods we can use the 20% examples left appart in order to make a quick test on them.
+5. Test the new CNN and compare it against the off-the-shelf CNN. For that I have implemented two methods *trainRF()* and *trainDeepFeatures()*. For these methods we can use the 20% examples left appart in order to make a quick test on them.
