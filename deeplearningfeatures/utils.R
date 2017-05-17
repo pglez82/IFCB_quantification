@@ -2,7 +2,7 @@
 computeImageFileNames<-function(IFCB)
 {
   #Get the year
-  year<-sapply(strsplit(IFCB$Sample,"_"),"[[",2)
+  year<-sapply(strsplit(as.character(IFCB$Sample),"_"),"[[",2)
   return(paste("../../data/",year,"/",IFCB$OriginalClass,"/",IFCB$Sample,"_",formatC(IFCB$roi_number, width=5, flag="0"),".png",sep=""))
 }
 

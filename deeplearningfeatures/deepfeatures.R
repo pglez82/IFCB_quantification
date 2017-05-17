@@ -40,22 +40,15 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
   
   start.time<-Sys.time()
   
-  #IFCB<-fread('export/IFCB_SMALL.csv')
-  IFCB<-fread('../export/IFCB.csv')
-  #We need the original class because the file names are based on this class
-  IFCB$OriginalClass<-readRDS('../IFCB.RData')$OriginalClass  
+  IFCB<-readRDS('../IFCB.RData')
   
   #Hasta que no podamos con todo...
   ###################
   #set.seed(7)
   #IFCB<-IFCB[sample(nrow(IFCB),10000),]
-  #fwrite(IFCB,paste("features/",modelName,"/normalfeatures.csv",sep=""))
   ###################
   
   fileNames<-computeImageFileNames(IFCB)
-  classes<-IFCB$Class
-  rm(IFCB)
-  gc()  
   
   #Load model
   model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=it)
@@ -88,42 +81,49 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
       }))
     }
     print("Saving to file...")
-    res<-data.table(res,Class=classes[chunkStart:chunkEnd])
+    res<-data.table(Sample=IFCB$Sample[chunkStart:chunkEnd],
+                    roi_number=IFCB$roi_number[chunkStart:chunkEnd],
+                    Class=IFCB$AutoClass[chunkStart:chunkEnd],
+                    FunctionalGroup=IFCB$FunctionalGroup[chunkStart:chunkEnd],res)
     fwrite(res,file = RESULTS_FILE,append = TRUE)
     print("Saving done")  
   }
   print(Sys.time() - start.time)
 }
 
-#Test normal features in order to compare
-testNormalFeatures<-function()
+#Compare normal features, with deeplearning features and with finetuned deeplearning features
+#Model with  normal features
+trainRF<-function()
 {
   library(caret)
   library(data.table)
   library(doMC)
-  registerDoMC(cores = 15)
-  set.seed(7)
-  IFCB_SMALL<-fread(paste("features/",modelName,"/normalfeatures.csv",sep=""))
+  registerDoMC(cores = 3)
+  
+  #Load dataset
+  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
+  
+  #train random forest with normal features
   y<-factor(IFCB_SMALL$Class)
   x<-IFCB_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
-  modelCaret<-train(x,y,method="rf", trControl=trainControl(method="cv",number=10,trim=TRUE,indexFinal=1:100))
-  save(modelCaret,file=paste("features/",modelName,"/NORMAL_MODEL.RData",sep=""))
+  model_rf<-train(x,y,method="rf",trControl=trainControl(method="cv",index = list(index_train$V1)))
+  save(model_rf,file="results/IFCB_SMALL_RF.RData")
 }
 
-#Test deep features
-testDeepFeatures<-function()
-{
-  library(caret)
-  library(data.table)
-  library(doMC)
-  print("Training with deep features...")
-  registerDoMC(cores = 10)
-  start.time <- Sys.time()
-  set.seed(7)
-  IFCB_SMALL<-fread(paste("features/",modelName,"/deepfeatures.csv",sep=""))
+trainDeepFeat<-function(modelN,it=0,nCores=1,device=mx.gpu())
+{ 
+  require(caret)
+  require(data.table)
+  
+  #Load dataset
+  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  index_train<-read.table(file='export/IFCB_SMALL_INDEXTRAIN.csv')
+  
+  computeDeepFeatures(modelName = modelN,it,nCores,device)
+  IFCB_SMALL<-fread(paste0("features/",modelN,"/deepfeatures.csv"))
   y<-factor(IFCB_SMALL$Class)
-  x<-IFCB_SMALL[,c("Class"):=NULL]
-  modelCaret<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",number=10,verboseIter=TRUE,trim=TRUE,indexFinal=1:100))
-  save(modelCaret,file=paste("features/",modelName,"/DEEP_MODEL.RData",sep=""))
-  print(Sys.time() - start.time)
+  x<-IFCB_SMALL[,c("Class","Sample","roi_number","FunctionalGroup"):=NULL]
+  model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
+  save(model_deep,file=paste0("results/IFCB_SMALL_DEEP",modelN,".RData"))
 }
