@@ -40,10 +40,10 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
   
   start.time<-Sys.time()
   
-  IFCB<-fread('export/IFCB_SMALL.csv')
-  #IFCB<-fread('../export/IFCB.csv')
+  #IFCB<-fread('export/IFCB_SMALL.csv')
+  IFCB<-fread('../export/IFCB.csv')
   #We need the original class because the file names are based on this class
-  #IFCB$OriginalClass<-readRDS('../IFCB.RData')$OriginalClass  
+  IFCB$OriginalClass<-readRDS('../IFCB.RData')$OriginalClass  
   
   #Hasta que no podamos con todo...
   ###################
@@ -84,7 +84,7 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
         normed <- preproc.image(im,dimx,dimy)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
-        c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000)
+        round(c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000),digits=5)
       }))
     }
     print("Saving to file...")
