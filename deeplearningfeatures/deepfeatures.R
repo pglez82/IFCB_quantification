@@ -6,7 +6,8 @@ modelName<-"resnet-18"
 
 
 
-#Just a test to see how predict works
+#Just a test to see how predict works. It tries to perdict a dog. A network trained in Imagenet should
+#be able to recognize it easily.
 testPredict<-function()
 {
   require(mxnet)
@@ -24,7 +25,8 @@ testPredict<-function()
 #This function is heavily paralelized. We save the progress from time to time because
 #we cannot fit everything into memory. 
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
-#destroying workers to fast
+#destroying workers to fast.
+#This function can be run paralelized nCores>1 if we want to run it in the cpu. If not, leave nCores to 1.
 computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu())
 {
   require(EBImage)
@@ -111,6 +113,8 @@ trainRF<-function()
   save(model_rf,file="results/IFCB_SMALL_RF.RData")
 }
 
+#Compute the deep features with the CNN pased as modelN and make a training testing iteration over the data.
+#This function is useful to compare between different CNNs or between different finetuning approaches.
 trainDeepFeat<-function(modelN,it=0,nCores=1,device=mx.gpu())
 { 
   require(caret)

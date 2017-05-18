@@ -1,6 +1,11 @@
 dimx<-224
 dimy<-224
 
+##IMPORTANT. The finetuning is done in python via very simple commands. Check the README file.
+
+#This function read the dataset that will be used for finetuning the CNN. This dataset is separated
+#in two parts, training and testing. We want to fit the CNN using the training set. This function also
+#squares and resize each image.
 prepareImagesForFineTunning<-function()
 {
   require(data.table)
