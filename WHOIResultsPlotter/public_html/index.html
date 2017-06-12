@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+
+        <!-- Angulars Material CSS using RawGit to load directly from `bower-material/master` -->
+        <link rel="stylesheet" href="https://rawgit.com/angular/bower-material/master/angular-material.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+
+    </head>
+
+    <body ng-app="MyApp" layout="column">
+
+        <!-- Angular Material Dependencies -->
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-aria.js"></script>
+        <script src="js/lib/angular-sanitize.min.js"></script>
+
+        <!-- Angular Material Javascript using RawGit to load directly from `bower-material/master` -->
+        <script src="https://rawgit.com/angular/bower-material/master/angular-material.js"></script>
+
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="js/lib/angular-plotly.js"></script>
+
+        <script src="js/script.js"></script>
+
+        <section ng-controller="MyController" ng-init="init()">
+            <div layout="column" layout-align="center center" style="margin-top:50px" ng-hide="dataloaded">
+                <md-progress-circular md-mode="undeterminate" style="display:block"></md-progress-circular>
+                <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
+            </div>
+            <div style="width: 400px;margin:auto;margin-top:25px" ng-show="dataloaded">
+                <md-input-container style="width:100%">
+                    <label>Plankton Class</label>
+                    <md-select ng-model="selectedClass" ng-change="selectOption()">
+                        <md-option><em>None</em></md-option>
+                        <md-option ng-repeat="x in classes" ng-value="x">
+                          {{x}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div style="width: 100%;margin:auto;margin-top:15px">
+                <plotly plotly-data="data" plotly-layout="layout" plotly-options="options"></plotly>
+                
+            </div>
+
+            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="selectedClass">
+                <md-content ng-show="normalized">
+                    <p style="font-weight: bold">Absolute Errors</p>
+                    <span  class="md-caption" ng-repeat="m in methods">
+                        <span ng-style="errors_ae.best === m && {'background-color':'GreenYellow'}"><span  style="font-weight: bold">{{m}}:</span> {{errors_ae.methods[m] | number:4}}</span>
+                        ,
+                     </span>
+                    <p style="font-weight: bold">Relative Absolute Errors</p>
+                    <span class="md-caption" ng-repeat="m in methods">
+                        <span ng-style="errors_re.best === m && {'background-color':'GreenYellow'}"><span style="font-weight: bold">{{m}}:</span> {{errors_re.methods[m] | number:4}}</span>
+                        ,
+                     </span>
+                </md-content>
+                <div layout="row" layout-align="center center" style="width:100%;margin:auto;margin-top:15px;">
+                    <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
+
+                    <md-button class="md-primary md-raised demo-menu-open-button"
+                               ng-click="showBestMethod()">
+                        <md-tooltip md-direction="top">Shows the method with the best AE error compared with the True prevalence. CC_NF method, is also showed used as baseline.</md-tooltip>
+                      Show best method
+                    </md-button>
+                    <md-button class="md-primary md-raised demo-menu-open-button"
+                               ng-click="resetChart()">
+                      Reset
+                    </md-button>
+
+                    <md-button class="md-primary md-raised" ng-click="showInfoDialog($event)">
+                        Help
+                    </md-button>
+                </div>
+            </div>
+
+            
+            
+
+
+    </section>
+</body>
+
+</html>
