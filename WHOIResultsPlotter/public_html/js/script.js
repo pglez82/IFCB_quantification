@@ -54,6 +54,12 @@ app.service('DataLoadService', ['$q', function ($q)
     function processData(allRows,sufix,includeTrue)
     {
         var x = [], t = [], cc = [],ac = [],pcc=[],pac=[],HDy=[],em=[];
+        var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+        
+        //For generating different colors
+        if (sufix==='_NF') order = 0;
+        if (sufix==='_DF') order = 1;
+        if (sufix==='_DFFT') order = 2;
 
         for (var i = 0; i < allRows.length; i++) {
             row = allRows[i];
@@ -66,13 +72,13 @@ app.service('DataLoadService', ['$q', function ($q)
             HDy.push(row['HDy']);
             em.push(row['EM']);
         }
-        var traceTrue = {x: x,y: t,type: 'scatter',name: 'True'};
-        var traceCC = {x: x,y: cc,type: 'scatter',name: "CC".concat(sufix),visible:'legendonly'};
-        var traceAC = {x: x,y: ac,type: 'scatter',name: 'AC'.concat(sufix),visible:'legendonly'};
-        var tracePCC = {x: x,y: pcc,type: 'scatter',name: 'PCC'.concat(sufix),visible:'legendonly'};
-        var tracePAC = {x: x,y: pac,type: 'scatter',name: 'PAC'.concat(sufix),visible:'legendonly'};
-        var traceHDy = {x: x,y: HDy,type: 'scatter',name: 'HDy'.concat(sufix),visible:'legendonly'};
-        var traceEM = {x: x,y: em,type: 'scatter',name: 'EM'.concat(sufix),visible:'legendonly'};
+        var traceTrue = {x: x,y: t,type: 'scatter',name: 'True',line: {color: colors[0]}};
+        var traceCC = {x: x,y: cc,type: 'scatter',name: "CC".concat(sufix),visible:'legendonly',line: {color: colors[1+(order*6)]}};
+        var traceAC = {x: x,y: ac,type: 'scatter',name: 'AC'.concat(sufix),visible:'legendonly',line: {color: colors[2+(order*6)]}};
+        var tracePCC = {x: x,y: pcc,type: 'scatter',name: 'PCC'.concat(sufix),visible:'legendonly',line: {color: colors[3+(order*6)]}};
+        var tracePAC = {x: x,y: pac,type: 'scatter',name: 'PAC'.concat(sufix),visible:'legendonly',line: {color: colors[4+(order*6)]}};
+        var traceHDy = {x: x,y: HDy,type: 'scatter',name: 'HDy'.concat(sufix),visible:'legendonly',line: {color: colors[5+(order*6)]}};
+        var traceEM = {x: x,y: em,type: 'scatter',name: 'EM'.concat(sufix),visible:'legendonly',line: {color: colors[6+(order*6)]}};
 
         if (includeTrue)
             return [traceTrue, traceCC,traceAC,tracePCC,tracePAC,traceHDy,traceEM];
