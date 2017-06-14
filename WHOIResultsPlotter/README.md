@@ -8,3 +8,5 @@ This tool needs a data directory in which we will have a csv file for each class
 The tool hasn't been built in order to work for other datasets. It has been built specificallly for this one. Anyway, It would be quite easy to adapt it to other problems or data.
 
 Demo site: http://trasgu.aic.uniovi.es/~pgonzalez/whoiresults/
+
+There is an extra script in the folder autoclass_prevalence. This script downloads all the prevalences computed in the IFCB Dashboard for the files that we use in our experiment. After that, this prevalences are plotted in the charts beside the other methods.
