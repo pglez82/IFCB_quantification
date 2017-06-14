@@ -15,11 +15,14 @@ downloadAutoClassPrevs<-function()
   
   #Create data.table for the results
   classes<-as.character(unique(IFCB$AutoClass))
-  prevs<-data.frame(matrix(0,nrow=length(testing),ncol=length(classes)))
+  if (file.exists('prevs.RData'))
+    prevs<-readRDS('prevs.RData')
+  else
+    prevs<-data.frame(matrix(0,nrow=length(testing),ncol=length(classes)))
   colnames(prevs)<-classes
   rownames(prevs)<-testing[order(testing)]
   
-  for (s in 1:length(testing))
+  for (s in 216:length(testing))
   {
     sample<-testing[s]
     print(paste0("Downloading file for: ",sample," [",s," of ",length(testing),"]"))
@@ -37,6 +40,19 @@ downloadAutoClassPrevs<-function()
     v<-v/sum(v)
     prevs[sample,names(v)]<-v
     saveRDS(prevs,file = "prevs.RData")
+  }
+}
+
+saveToFiles<-function()
+{
+  #Load the data
+  prevs<-readRDS('prevs.RData')
+  for (c in colnames(prevs))
+  {
+    fileName<-paste0(c,".csv")
+    d<-data.frame(AutoClass=prevs[,c])
+    rownames(d)<-1:nrow(d)-1
+    write.csv(file=fileName,d,quote = FALSE)
   }
 }
 
