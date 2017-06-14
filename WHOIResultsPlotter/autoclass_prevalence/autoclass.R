@@ -22,12 +22,19 @@ downloadAutoClassPrevs<-function()
   colnames(prevs)<-classes
   rownames(prevs)<-testing[order(testing)]
   
-  for (s in 216:length(testing))
+  for (s in 307:length(testing))
   {
     sample<-testing[s]
-    print(paste0("Downloading file for: ",sample," [",s," of ",length(testing),"]"))
     csv_url<-paste0(base_url,sample,"_class_scores.csv")
-    results<-read.csv(url(csv_url))
+    downloaded=FALSE
+    while (!downloaded)
+    {
+      try({
+        print(paste0("Downloading file for: ",sample," [",s," of ",length(testing),"]"))
+        results<-read.csv(url(csv_url))    
+        downloaded=TRUE
+      })
+    }
     print("Done. Processing...")
     cm<-results[,2:ncol(results)]
     for (i in 1:nrow(results))
