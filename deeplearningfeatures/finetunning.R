@@ -17,7 +17,7 @@ prepareImagesForFineTunning<-function()
   require(doMC)
   #We need the function computeFileNames to process the images
   source('utils.R')
-  nCores<-2
+  nCores<-12
   registerDoMC(cores = nCores)
   IFCB_SMALL<-fread(IFCB_FILE)
   
