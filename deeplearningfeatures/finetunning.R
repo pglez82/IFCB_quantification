@@ -3,6 +3,8 @@ dimy<-224
 
 ##IMPORTANT. The finetuning is done in python via very simple commands. Check the README file.
 
+IFCB_FILE<-'export/IFCB_TRAIN.csv' #For the smaller experiments put 'export/IFCB_SMALL.csv' here
+
 #This function read the dataset that will be used for finetuning the CNN. This dataset is separated
 #in two parts, training and testing. We want to fit the CNN using the training set. This function also
 #squares and resize each image.
@@ -17,7 +19,7 @@ prepareImagesForFineTunning<-function()
   source('utils.R')
   nCores<-2
   registerDoMC(cores = nCores)
-  IFCB_SMALL<-fread('export/IFCB_SMALL.csv')
+  IFCB_SMALL<-fread(IFCB_FILE)
   
   fileNames<-data.frame(fn=computeImageFileNames(IFCB_SMALL),stringsAsFactors=FALSE)
   fileNames$Class<-IFCB_SMALL$Class
