@@ -21,6 +21,7 @@ testPredict<-function()
   print(paste0("Predicted Top-class: ", synsets  [[max.idx]]))
 }
 
+#resize all images
 prepareImages<-function(imgPath="../../data",destPath="../../resized",nCores=12)
 {
   require(EBImage)
