@@ -5,24 +5,30 @@ app.service('DataLoadService', ['$q', function ($q)
     this.loadData = function (classes,progressCallBack)
     {
         progress = 0;
-        maxprogress = 3*classes.length;
+        maxprogress = 4*classes.length;
         path_nf = 'data/OneVsAll1vs50/';
         path_df = 'data/OneVsAll1vs50DL/';
         path_dfft = 'data/OneVsAll1vs50DLFT/';
 
         var promises = [];
+        
+        //Add the trace for the autoclass. This is only one trace
+        path_autoclass = 'data/autoclass/';
+        
 
         angular.forEach(classes,function(cl)
         {
             nf=path_nf.concat('predictions/').concat(cl).concat('.csv');
             df=path_df.concat('predictions/').concat(cl).concat('.csv');
             dfft=path_dfft.concat('predictions/').concat(cl).concat('.csv');
-            var deffered = $q.defer();
+            autoclass=path_autoclass.concat(cl).concat('.csv');
+            
+            var deffered1 = $q.defer();
             loadSingleFile(nf,"_NF",true).then(function(data){
                 progressCallBack(++progress*100/maxprogress);
-                deffered.resolve(data);
+                deffered1.resolve(data);
             });
-            promises.push(deffered.promise);
+            promises.push(deffered1.promise);
             var deffered2 = $q.defer();
             loadSingleFile(df,"_DF",false).then(function(data){
                 progressCallBack(++progress*100/maxprogress);
@@ -35,6 +41,12 @@ app.service('DataLoadService', ['$q', function ($q)
                 deffered3.resolve(data);
             });
             promises.push(deffered3.promise);
+            var deffered4 = $q.defer();
+            loadSingleFileAutoClass(autoclass).then(function(data){
+                progressCallBack(++progress*100/maxprogress);
+                deffered4.resolve(data);
+            });
+            promises.push(deffered4.promise);
         });
         return $q.all(promises);   
     };
@@ -46,6 +58,18 @@ app.service('DataLoadService', ['$q', function ($q)
                         function (data)
                         {
                             resolve(processData(data,sufix,includeTrue));
+                        }
+                );
+        });
+    }
+    
+    function loadSingleFileAutoClass(path)
+    {
+        return $q(function (resolve, reject) {
+            Plotly.d3.csv(path,
+                        function (data)
+                        {
+                            resolve(processDataAutoClass(data));
                         }
                 );
         });
@@ -84,6 +108,20 @@ app.service('DataLoadService', ['$q', function ($q)
             return [traceTrue, traceCC,traceAC,tracePCC,tracePAC,traceHDy,traceEM];
         else
             return [traceCC,traceAC,tracePCC,tracePAC,traceHDy,traceEM];
+    }
+    
+    function processDataAutoClass(allRows)
+    {
+        var x = [], a=[];
+        var color = "#3b3eac";
+        
+        for (var i = 0; i < allRows.length; i++) {
+            row = allRows[i];
+            x.push(row['']);
+            a.push(row['AutoClass']);
+        }
+        var traceAutoClass = {x: x,y: a,type: 'scatter',name: "AutoClass",visible:'legendonly',line: {color: color}};
+        return [traceAutoClass];
     }
 }]);
     
@@ -194,7 +232,7 @@ app.controller('MyController', ['$scope','DataLoadService','DataProcessService',
         $scope.progress=Math.round(percentage);
     }).then(function (response) {
         for (var i=0;i<$scope.classes.length;i++)
-            data_raw[$scope.classes[i]] = response[i*3].concat(response[(i*3)+1]).concat(response[(i*3)+2]);
+            data_raw[$scope.classes[i]] = response[i*4].concat(response[(i*4)+1]).concat(response[(i*4)+2]).concat(response[(i*4)+3]);
 
         //In data_raw we have an object with a property for each class. In each class we have all the traces.
         data_norm=DataProcessService.normalizeData(data_raw,$scope.classes);

@@ -24,6 +24,15 @@ python ~/mxnet/tools/im2rec.py ifcb resized/train --list True --recursive True -
 python ~/mxnet/tools/im2rec.py ifcb_train.lst resized/train --pass-through True --num-thread 2
 python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/train --pass-through True --num-thread 2
 ```
+Another option (when we want to use all the data) is to use all the images in train as trainset and all the images in
+test as valset
+```bash
+python ~/mxnet/tools/im2rec.py ifcb_train resized/train --list True --recursive True --exts .png
+python ~/mxnet/tools/im2rec.py ifcb_val resized/test --list True --recursive True --exts .png
+python ~/mxnet/tools/im2rec.py ifcb_train.lst resized/train --pass-through True --num-thread 2
+python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/test --pass-through True --num-thread 2
+```
+
 2. With the rec files, we finetune the network. This is done in python, via the following command:
 ```bash
 python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model models/resnet-18/resnet-18 --gpus 0 --data-train ../../ifcb_train.rec --data-val ../../ifcb_val.rec --load-epoch 0 --random-crop 0 --random-mirror 0 --num-epochs 10 --rgb-mean 0,0,0 --num-classes 24 --model-prefix models/resnet-18-10/resnet-18-10 --batch-size 32 --num-examples 23624 --layer-before-fullc 'flatten0'

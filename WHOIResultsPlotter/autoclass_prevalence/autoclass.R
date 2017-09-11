@@ -63,4 +63,5 @@ saveToFiles<-function()
   }
 }
 
-downloadAutoClassPrevs()
+#downloadAutoClassPrevs()
+saveToFiles()
