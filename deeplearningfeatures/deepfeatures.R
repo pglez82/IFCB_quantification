@@ -21,13 +21,35 @@ testPredict<-function()
   print(paste0("Predicted Top-class: ", synsets  [[max.idx]]))
 }
 
+prepareImages<-function(imgPath="../../data",destPath="../../resized",nCores=12)
+{
+  require(EBImage)
+  require(doMC)
+  require(itertools)
+  #We need the function computeFileNames to process the images
+  source('utils.R')
+  registerDoMC(cores = nCores)
+  IFCB<-readRDS('../IFCB.RData')
+  IFCB<-IFCB[1:100,]
+  fileNames<-data.frame(origin=computeImageFileNames(IFCB,imgPath=imgPath),stringsAsFactors = FALSE)
+  fileNames$dest<-gsub(imgPath,destPath,fileNames$origin)
+  res<-foreach(fs=isplitRows(fileNames, chunks=nCores)) %dopar%
+  {
+    for (i in 1:nrow(fs))
+    {
+      dir.create(dirname(fs[i,2]), showWarnings = FALSE,recursive=TRUE)	
+      writeImage(preproc.image(readImage(fs[i,1]),dimx,dimy,returnImage = TRUE),fs[i,2])
+    }
+  }
+}
+
 #This function computes the deep features from one of the last layers in CNN. 
 #This function is heavily paralelized. We save the progress from time to time because
 #we cannot fit everything into memory. 
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
 #destroying workers to fast.
 #This function can be run paralelized nCores>1 if we want to run it in the cpu. If not, leave nCores to 1.
-computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../data",chunkSize=500,nCores=1,device=mx.gpu())
+computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../resized",chunkSize=500,nCores=1,device=mx.gpu())
 {
   require(EBImage)
   require(mxnet)
@@ -74,8 +96,8 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../data",ch
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)
       {
-        im <- readImage(f)
-        normed <- preproc.image(im,dimx,dimy)
+        normed <- readImage(f)
+        #normed <- preproc.image(im,dimx,dimy)
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
         round(c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000),digits=5)
