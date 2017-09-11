@@ -27,7 +27,7 @@ testPredict<-function()
 #The foreach loop gives data to workers and each worker processes more than one image. This avoids creating and
 #destroying workers to fast.
 #This function can be run paralelized nCores>1 if we want to run it in the cpu. If not, leave nCores to 1.
-computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu())
+computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../data",chunkSize=500,nCores=1,device=mx.gpu())
 {
   require(EBImage)
   require(mxnet)
@@ -50,7 +50,7 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
   #IFCB<-IFCB[sample(nrow(IFCB),10000),]
   ###################
   
-  fileNames<-computeImageFileNames(IFCB)
+  fileNames<-computeImageFileNames(IFCB,imgPath=imgPath)
   
   #Load model
   model = mx.model.load(paste("models/",modelName,"/",modelName,sep=""), iteration=it)
@@ -60,7 +60,6 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,nCores=1,device=mx.gpu(
   out <- mx.symbol.Group(t)
   
   print(paste('Computing features for all the images...',length(fileNames),"images"))
-  chunkSize<-500
   nChunks<-length(fileNames)%/%chunkSize
   for (chunk in 1:nChunks)
   {
