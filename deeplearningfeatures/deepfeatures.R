@@ -96,8 +96,10 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../resized"
       mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
       t(sapply(fs,function(f)
       {
-        normed <- readImage(f)
+        normed <- round(as.array(imageData(readImage(f))) * 255)#-170
+        dim(normed) <- c(dimx, dimy, 3, 1)
         #normed <- preproc.image(im,dimx,dimy)
+        
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
         round(c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000),digits=5)
