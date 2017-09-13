@@ -72,6 +72,8 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../resized"
   #IFCB<-IFCB[sample(nrow(IFCB),10000),]
   ###################
   
+  #Load original image dims
+  imagedims<-fread('imagedims.csv')  
   fileNames<-computeImageFileNames(IFCB,imgPath=imgPath)
   
   #Load model
@@ -102,7 +104,7 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../resized"
         
         mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(normed)), match.name=TRUE)
         mx.exec.forward(executor, is.train=FALSE)
-        round(c(as.array(executor$ref.outputs$flatten0_output),dim(im)[1:2]/1000),digits=5)
+        round(c(as.array(executor$ref.outputs$flatten0_output)),digits=5)
       }))
     }
     print("Saving to file...")
