@@ -118,6 +118,20 @@ computeDeepFeatures<-function(modelName="resnet-18",it=0,imgPath="../../resized"
   print(Sys.time() - start.time)
 }
 
+
+#Features computed by a CNN does not have information about size. We add this information
+#to the
+addImageSizeToFeatures<-function(modelName)
+{
+  require(data.table)
+  FEAT_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
+  imageDims<-fread('imagedims.csv')
+  features<-fread(FEAT_FILE)
+  features[,V513:=imageDims$V513]
+  features[,V514:=imageDims$V514]
+  fwrite(file = FEAT_FILE,features)
+}
+
 #Compare normal features, with deeplearning features and with finetuned deeplearning features
 #Model with  normal features
 trainRF<-function()
