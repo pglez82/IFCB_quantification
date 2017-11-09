@@ -2,62 +2,40 @@ var app = angular.module('MyApp', ['ngMaterial', 'plotly','ngSanitize']);
 
 app.service('DataLoadService', ['$q', function ($q)
 {
-    this.loadData = function (classes,progressCallBack)
+    this.loadData = function (classes,attribute_sets,quant_methods,progressCallBack)
     {
         progress = 0;
-        maxprogress = 4*classes.length;
-        path_nf = 'data/OneVsAll1vs50/';
-        path_df = 'data/OneVsAll1vs50DL/';
-        path_dfft = 'data/OneVsAll1vs50DLFT/';
-
+        maxprogress = attribute_sets.length*classes.length;
+        base_path="data/"
         var promises = [];
         
         //Add the trace for the autoclass. This is only one trace
-        path_autoclass = 'data/autoclass/';
+        //path_autoclass = 'data/autoclass/';
         
-
+        
         angular.forEach(classes,function(cl)
         {
-            nf=path_nf.concat('predictions/').concat(cl).concat('.csv');
-            df=path_df.concat('predictions/').concat(cl).concat('.csv');
-            dfft=path_dfft.concat('predictions/').concat(cl).concat('.csv');
-            autoclass=path_autoclass.concat(cl).concat('.csv');
-            
-            var deffered1 = $q.defer();
-            loadSingleFile(nf,"_NF",true).then(function(data){
-                progressCallBack(++progress*100/maxprogress);
-                deffered1.resolve(data);
+            angular.forEach(attribute_sets,function(attset,index)
+            {
+                path=base_path.concat(attset).concat('/predictions/').concat(cl).concat('.csv');
+                var deffered = $q.defer();
+                loadSingleFile(path,attset,quant_methods,index===0).then(function(data){
+                    progressCallBack(++progress*100/maxprogress);
+                    deffered.resolve(data);
+                });
+                promises.push(deffered.promise);
             });
-            promises.push(deffered1.promise);
-            var deffered2 = $q.defer();
-            loadSingleFile(df,"_DF",false).then(function(data){
-                progressCallBack(++progress*100/maxprogress);
-                deffered2.resolve(data);
-            });
-            promises.push(deffered2.promise);
-            var deffered3 = $q.defer();
-            loadSingleFile(dfft,"_DFFT",false).then(function(data){
-                progressCallBack(++progress*100/maxprogress);
-                deffered3.resolve(data);
-            });
-            promises.push(deffered3.promise);
-            var deffered4 = $q.defer();
-            loadSingleFileAutoClass(autoclass).then(function(data){
-                progressCallBack(++progress*100/maxprogress);
-                deffered4.resolve(data);
-            });
-            promises.push(deffered4.promise);
         });
         return $q.all(promises);   
     };
 
-    function loadSingleFile(path,sufix,includeTrue)
+    function loadSingleFile(path,sufix,quant_methods,includeTrue)
     {
         return $q(function (resolve, reject) {
             Plotly.d3.csv(path,
                         function (data)
                         {
-                            resolve(processData(data,sufix,includeTrue));
+                            resolve(processData(data,sufix,quant_methods,includeTrue));
                         }
                 );
         });
@@ -75,39 +53,37 @@ app.service('DataLoadService', ['$q', function ($q)
         });
     }
 
-    function processData(allRows,sufix,includeTrue)
+    //This is called for each class and each attribute set
+    function processData(allRows,sett,quant_methods,includeTrue)
     {
-        var x = [], t = [], cc = [],ac = [],pcc=[],pac=[],HDy=[],em=[];
-        var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+        r={};
+        r['x'] = []; r['t'] = [];
+        for (var i = 0;i<quant_methods.length;i++)
+            r[quant_methods[i]]=[];
+        
+        
         
         //For generating different colors
-        if (sufix==='_NF') order = 0;
-        if (sufix==='_DF') order = 1;
-        if (sufix==='_DFFT') order = 2;
+        //if (sufix==='_NF') order = 0;
+        //if (sufix==='_DF') order = 1;
+        //if (sufix==='_DFFT') order = 2;
+        order=0;
 
         for (var i = 0; i < allRows.length; i++) {
             row = allRows[i];
-            x.push(row['']);
-            t.push(row['True']);
-            cc.push(row['CC']);
-            ac.push(row['AC']);
-            pcc.push(row['PCC']);
-            pac.push(row['PAC']);
-            HDy.push(row['HDy']);
-            em.push(row['EM']);
+            r['x'].push(row['']); //X axis
+            r['t'].push(row['True']); //True prevalence
+            for (var j=0; j<quant_methods.length;j++) //Quantification methods
+                r[quant_methods[j]].push(row[quant_methods[j]]);
         }
-        var traceTrue = {x: x,y: t,type: 'scatter',name: 'True',line: {color: colors[0]}};
-        var traceCC = {x: x,y: cc,type: 'scatter',name: "CC".concat(sufix),visible:'legendonly',line: {color: colors[1+(order*6)]}};
-        var traceAC = {x: x,y: ac,type: 'scatter',name: 'AC'.concat(sufix),visible:'legendonly',line: {color: colors[2+(order*6)]}};
-        var tracePCC = {x: x,y: pcc,type: 'scatter',name: 'PCC'.concat(sufix),visible:'legendonly',line: {color: colors[3+(order*6)]}};
-        var tracePAC = {x: x,y: pac,type: 'scatter',name: 'PAC'.concat(sufix),visible:'legendonly',line: {color: colors[4+(order*6)]}};
-        var traceHDy = {x: x,y: HDy,type: 'scatter',name: 'HDy'.concat(sufix),visible:'legendonly',line: {color: colors[5+(order*6)]}};
-        var traceEM = {x: x,y: em,type: 'scatter',name: 'EM'.concat(sufix),visible:'legendonly',line: {color: colors[6+(order*6)]}};
-
+        //TODO: un problema con los colores. No los deberíamos de generar aquí
+        traces = [];
         if (includeTrue)
-            return [traceTrue, traceCC,traceAC,tracePCC,tracePAC,traceHDy,traceEM];
-        else
-            return [traceCC,traceAC,tracePCC,tracePAC,traceHDy,traceEM];
+            traces.push({x: r['x'],y: r['t'],type: 'scatter',name: 'True'});
+        for (var i=0; i<quant_methods.length;i++)
+            traces.push({x: r['x'],y: r[quant_methods[i]],type: 'scatter',name: quant_methods[i].concat("_").concat(sett),visible:'legendonly',method:quant_methods[i],set:sett});
+
+        return traces;
     }
     
     function processDataAutoClass(allRows)
@@ -224,16 +200,24 @@ app.service('DataProcessService', function ()
 app.controller('MyController', ['$scope','DataLoadService','DataProcessService','$mdDialog', function ($scope, DataLoadService,DataProcessService,$mdDialog) {
         
     $scope.classes = ['Asterionellopsis','bad','Cerataulina','Ceratium','Chaetoceros','ciliate_mix','clusterflagellate','Corethron','Coscinodiscus','Cylindrotheca','DactFragCerataul','Dactyliosolen','detritus','Dictyocha','dino30','Dinobryon','Dinophysis','Ditylum','Ephemera','Eucampia','Euglena','Guinardia','Guinardia_flaccida','Guinardia_striata','Gyrodinium','kiteflagellates','Laboea','Lauderia','Leptocylindrus','Licmophora','mix','mix_elongated','Myrionecta','na','Odontella','Paralia','pennate','Phaeocystis','Pleurosigma','Prorocentrum','Pseudonitzschia','Pyramimonas','Rhizosolenia','Skeletonema','Stephanopyxis','Thalassionema','Thalassiosira','Thalassiosira_dirty','tintinnid'];
+    $scope.attribute_sets = ['NF','DF_resnet18','DFFT_resnet18_partial','DFFT_resnet18_full','DFFT_resnet34_full','DFFT_resnet50_full'];
     var data_raw = {};
     var data_norm = {};
     var errors = {};
+    $scope.selectedComp='atts';
+    $scope.quantmethods=['CC','AC','PCC','PAC','HDy','EM'];
+    $scope.selectedMethod = 'CC';
+    $scope.selectedSet = 'NF';
 
-    DataLoadService.loadData($scope.classes,function(percentage){
+    DataLoadService.loadData($scope.classes,$scope.attribute_sets,$scope.quantmethods,function(percentage){
         $scope.progress=Math.round(percentage);
     }).then(function (response) {
         for (var i=0;i<$scope.classes.length;i++)
-            data_raw[$scope.classes[i]] = response[i*4].concat(response[(i*4)+1]).concat(response[(i*4)+2]).concat(response[(i*4)+3]);
-
+        {
+            data_raw[$scope.classes[i]] = [];
+            for (var j=0;j<$scope.attribute_sets.length;j++)
+                data_raw[$scope.classes[i]] = data_raw[$scope.classes[i]].concat(response[(i*$scope.attribute_sets.length)+j]);
+        }
         //In data_raw we have an object with a property for each class. In each class we have all the traces.
         data_norm=DataProcessService.normalizeData(data_raw,$scope.classes);
         errors = DataProcessService.computeErrors(data_norm,$scope.classes);
@@ -242,23 +226,40 @@ app.controller('MyController', ['$scope','DataLoadService','DataProcessService',
     });
 
     $scope.selectOption = function () {
-        makeplot($scope.selectedClass,$scope.normalized);
+        makeplot($scope.selectedClass,$scope.normalized,$scope.selectedComp,$scope.selectedMethod,$scope.selectedSet);
         $scope.errors_ae = errors.ae[$scope.selectedClass];
         $scope.errors_re = errors.re[$scope.selectedClass];
 
     };
 
-    function makeplot(cl,normalized) {
+    function makeplot(cl,normalized,selectedComp,selectedMethod,selectedSet) {
         if (normalized)
-        {
-            $scope.data = data_norm[cl];
-            $scope.layout = {xaxis:{title:'File'}}; 
-        }
+            data_used = data_norm;
         else
+            data_used = data_raw;
+        
+        $scope.data = [];
+        $scope.data.push(data_used[cl][0]);
+        $scope.layout = {xaxis:{title:'File'}}; 
+        //We have to take only the traces needed
+        for (var i = 1; i<data_used[cl].length;i++)
         {
-            $scope.data = data_raw[cl];
-            $scope.layout = {xaxis:{title:'File'}};
-        }    
+            if (selectedComp === 'atts') //Show selectedMethod for all the sets
+            {    
+                if (data_used[cl][i].method===selectedMethod)
+                    $scope.data.push(data_used[cl][i]);
+            }
+            else if (selectedComp === 'meths') //Show selectedMethod for all the sets
+            {
+                if (data_used[cl][i].set===selectedSet)
+                    $scope.data.push(data_used[cl][i]);
+            }
+        }
+        
+        //Assign colors
+        var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+        for (var i = 0; i<$scope.data.length;i++)
+            $scope.data[i].line={color: colors[i]}
 
         $scope.options = {showLink: false,displayLogo: false};
     }
@@ -274,7 +275,7 @@ app.controller('MyController', ['$scope','DataLoadService','DataProcessService',
     };
     $scope.changeNormalized=function()
     {
-        makeplot($scope.selectedClass,$scope.normalized); 
+        makeplot($scope.selectedClass,$scope.normalized,$scope.selectedComp,$scope.selectedMethod,$scope.selectedSet);
     };
 
     $scope.init=function()

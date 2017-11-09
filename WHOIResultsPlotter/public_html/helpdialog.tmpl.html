@@ -35,10 +35,12 @@ and open the template in the editor.
         <p>Each of these methods has been tested using three different features sets:
         <ul>
             <li><b>NF:</b> Normal features downloaded from IFCB dashboard</li>
-            <li><b>DF:</b> Attributes computed using resnet-18 trained for the ImageNet problem. No fine-tunning has been made to adapt the network to the plankton problem.</li>
-            <li><b>DFFT:</b> Attributes computed using resnet-18 rained for the ImageNet problem. The difference with the DF aproach is that the network has been fine-tunned with plankton images.</li>
+            <li><b>DF_resnet18:</b> Attributes computed using resnet-18 trained for the ImageNet problem. No fine-tunning has been made to adapt the network to the plankton problem.</li>
+            <li><b>DFFT_resnet18_partial:</b> Attributes computed using resnet-18 trained for the ImageNet problem. The difference with the DF aproach is that the network has been fine-tunned with plankton images. We have used 30.000 training images for the finetunning process.</li>
+            <li><b>DFFT_resnet18_full:</b> Same than the partial version but using all the training images for fine tunning (1/2 million).</li>
+            <li><b>DFFT_resnet34_full:</b> Same than before but using a network with 34 layers.</li>
+            <li><b>DFFT_resnet50_full:</b> Same than before but using a network with 50 layers. This network generates 2048 features instead of 512.</li>
         </ul>
-        <p><i><b>One example:</b> So, if we want to compare the performance of the CC method, using the IFCB features with the CC method using the resnet-18 features without fine-tuning we would have to set visible the following traces: CC_NF and CC_DF. Note that the True prevalence is visible by default.</i></p>
       </div>
     </md-dialog-content>
 
