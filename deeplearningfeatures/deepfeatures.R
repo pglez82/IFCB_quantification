@@ -2,7 +2,7 @@
 dimx<-224
 dimy<-224
 #Neural network to be used. Must exist a directory inside 'models' with this name.
-modelName<-"resnet-18"
+modelName<-"resnet-34"
 
 
 
@@ -127,8 +127,10 @@ addImageSizeToFeatures<-function(modelName)
   FEAT_FILE<-paste("features/",modelName,"/deepfeatures.csv",sep="")
   imageDims<-fread('imagedims.csv')
   features<-fread(FEAT_FILE)
-  features[,V513:=imageDims$V513]
-  features[,V514:=imageDims$V514]
+  #features[,V513:=imageDims$V513]
+  #features[,V514:=imageDims$V514]
+  features[,V2049:=imageDims$V513]
+  features[,V2050:=imageDims$V514]
   fwrite(file = FEAT_FILE,features)
 }
 
