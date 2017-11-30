@@ -209,7 +209,8 @@ app.service('DataProcessService', function ()
 app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService', '$mdDialog', function ($scope, DataLoadService, DataProcessService, $mdDialog) {
 
         $scope.classes = ['Asterionellopsis', 'bad', 'Cerataulina', 'Ceratium', 'Chaetoceros', 'ciliate_mix', 'clusterflagellate', 'Corethron', 'Coscinodiscus', 'Cylindrotheca', 'DactFragCerataul', 'Dactyliosolen', 'detritus', 'Dictyocha', 'dino30', 'Dinobryon', 'Dinophysis', 'Ditylum', 'Ephemera', 'Eucampia', 'Euglena', 'Guinardia', 'Guinardia_flaccida', 'Guinardia_striata', 'Gyrodinium', 'kiteflagellates', 'Laboea', 'Lauderia', 'Leptocylindrus', 'Licmophora', 'mix', 'mix_elongated', 'Myrionecta', 'na', 'Odontella', 'Paralia', 'pennate', 'Phaeocystis', 'Pleurosigma', 'Prorocentrum', 'Pseudonitzschia', 'Pyramimonas', 'Rhizosolenia', 'Skeletonema', 'Stephanopyxis', 'Thalassionema', 'Thalassiosira', 'Thalassiosira_dirty', 'tintinnid'];
-        $scope.attribute_sets = ['NF', 'DF_resnet18', 'DFFT_resnet18_partial', 'DFFT_resnet18_full', 'DFFT_resnet34_full', 'DFFT_resnet50_full','DFFT_resnet101_full'];
+        //Extra 'DFFT_resnet18_partial',,
+        $scope.attribute_sets = ['NF','DF_resnet18','DF_resnet34','DFFT_resnet18_full', 'DFFT_resnet34_full', 'DFFT_resnet50_full','DFFT_resnet101_full'];
         var data_raw = {};
         var data_norm = {};
         var errors = {};
