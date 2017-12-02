@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="css/angular-material.min.css">
         <link rel="stylesheet" href="css/style.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+        <link rel="stylesheet" href="css/md-data-table.min.css"  type="text/css"/>
     </head>
 
     <body ng-app="MyApp" layout="column">
@@ -17,6 +18,7 @@
         <script src="js/lib/angular-material.min.js"></script>
         <script src="js/lib/plotly-latest.min.js"></script>
         <script src="js/lib/angular-plotly.js"></script>
+        <script src="js/lib/md-data-table.min.js"></script>
 
         <script src="js/script.js"></script>
 
@@ -77,18 +79,45 @@
             </div>
 
             <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="selectedClass">
-                <md-content ng-show="normalized">
-                    <p style="font-weight: bold">Absolute Errors</p>
-                    <span  class="md-caption" ng-repeat="m in methods">
-                        <span ng-style="errors_ae.best === m && {'background-color':'GreenYellow'}"><span  style="font-weight: bold">{{m}}:</span> {{errors_ae.methods[m]| number:4}}</span>
-                        ,
-                    </span>
-                    <p style="font-weight: bold">Relative Absolute Errors</p>
-                    <span class="md-caption" ng-repeat="m in methods">
-                        <span ng-style="errors_re.best === m && {'background-color':'GreenYellow'}"><span style="font-weight: bold">{{m}}:</span> {{errors_re.methods[m]| number:4}}</span>
-                        ,
-                    </span>
-                </md-content>
+
+                <md-table-container>
+                    <table md-table style="text-align:left">
+                        <thead md-head>
+                            <tr>
+                                <th></th>
+                                <th colspan="7" style="text-align: center">Absolute Errors</th>
+                                <th colspan="7" style="text-align: center">Relative Absolute Errors</th>
+                            </tr>
+                            <tr><!--this is your header row -->
+                                <th></th>
+                                <th ng-repeat="qm in quantmethods" style="padding:0px;text-align: center" md-numeric>
+                                    {{qm}}<!-- this is a header section, you can repeat here or use it as a title -->
+                                </th>
+                                <th></th>
+                                <th ng-repeat="qm in quantmethods" style="padding:0px;text-align: center" md-numeric>
+                                    {{qm}}<!-- this is a header section, you can repeat here or use it as a title -->
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr md-row ng-repeat="set in attribute_sets"><!-- repeat the rows -->
+                            <td md-cell style="border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;">{{set}}</td>
+                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_ae.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                                {{errors_ae.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
+                            </td>
+                            <td md-cell style="padding-right: 3px;border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;"></td>
+                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_re.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                                {{errors_re.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    
+                </md-table-container>
+
+
+
+
                 <div layout="row" layout-align="center center" style="width:100%;margin:auto;margin-top:15px;">
                     <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
 

@@ -1,4 +1,4 @@
-var app = angular.module('MyApp', ['ngMaterial', 'plotly', 'ngSanitize']);
+var app = angular.module('MyApp', ['ngMaterial', 'plotly', 'ngSanitize','md.data.table']);
 
 /*
  * This service loads all the data. The data loading is done at the beginning.
@@ -149,47 +149,63 @@ app.service('DataProcessService', function ()
         return dn;
     };
 
-    this.computeErrors = function (dat, classes)
+    this.computeErrors = function (dat, classes, quant_methods, attribute_sets)
     {
         var ae = {};
         var re = {};
-        var methods = [];
+
         epsilon = 1 / (2 * 3600.0);
 
-        for (i = 1; i < dat[classes[0]].length; i++)
-            methods.push(dat[classes[0]][i].name);
 
         angular.forEach(classes, function (cl)
         {
             ae[cl] = {};
             re[cl] = {};
+            
+            //We use map because we want to preserve order in properties
             ae[cl].methods = {};
             re[cl].methods = {};
-
+            
+            
+            //Initialize error values
+            for (i=0;i<quant_methods.length;i++)
+            {
+                ae[cl].methods[quant_methods[i]] = {};
+                re[cl].methods[quant_methods[i]] = {}; 
+                for (j=0;j<attribute_sets.length;j++)
+                {
+                    ae[cl].methods[quant_methods[i]][attribute_sets[j]]=0;
+                    re[cl].methods[quant_methods[i]][attribute_sets[j]]=0;
+                }
+            }
+            
             ae_min_error = Number.MAX_VALUE;
             re_min_error = Number.MAX_VALUE;
 
             //All methods except the first which is true prevalence
             for (i = 1; i < dat[cl].length; i++)
             {
-                ae[cl].methods[dat[cl][i].name] = 0;
-                re[cl].methods[dat[cl][i].name] = 0;
+                method = dat[cl][i].method;
+                set = dat[cl][i].set;
+                
+                ae[cl].methods[method][set] = 0;
+                re[cl].methods[method][set] = 0;
 
                 for (j = 0; j < dat[cl][i].y.length; j++)
                 {
-                    ae[cl].methods[dat[cl][i].name] += Math.abs(dat[cl][i].y[j] - dat[cl][0].y[j]);
-                    re[cl].methods[dat[cl][i].name] += ((Math.abs(dat[cl][i].y[j] - dat[cl][0].y[j])) + epsilon) / (parseFloat(dat[cl][0].y[j]) + epsilon);
+                    ae[cl].methods[method][set] += Math.abs(dat[cl][i].y[j] - dat[cl][0].y[j]);
+                    re[cl].methods[method][set] += ((Math.abs(dat[cl][i].y[j] - dat[cl][0].y[j])) + epsilon) / (parseFloat(dat[cl][0].y[j]) + epsilon);
                 }
-                ae[cl].methods[dat[cl][i].name] /= dat[cl][i].y.length;
-                re[cl].methods[dat[cl][i].name] /= dat[cl][i].y.length;
-                if (ae[cl].methods[dat[cl][i].name] < ae_min_error)
+                ae[cl].methods[method][set] /= dat[cl][i].y.length;
+                re[cl].methods[method][set] /= dat[cl][i].y.length;
+                if (ae[cl].methods[method][set] < ae_min_error)
                 {
-                    ae_min_error = ae[cl].methods[dat[cl][i].name];
+                    ae_min_error = ae[cl].methods[method][set];
                     ae[cl].best = dat[cl][i].name;
                 }
-                if (re[cl].methods[dat[cl][i].name] < re_min_error)
+                if (re[cl].methods[method][set] < re_min_error)
                 {
-                    re_min_error = re[cl].methods[dat[cl][i].name];
+                    re_min_error = re[cl].methods[method][set];
                     re[cl].best = dat[cl][i].name;
                 }
 
@@ -198,7 +214,6 @@ app.service('DataProcessService', function ()
         errors = {};
         errors.ae = ae;
         errors.re = re;
-        errors.methods = methods;
         return errors;
     };
 });
@@ -230,8 +245,7 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             }
             //In data_raw we have an object with a property for each class. In each class we have all the traces.
             data_norm = DataProcessService.normalizeData(data_raw, $scope.classes);
-            errors = DataProcessService.computeErrors(data_norm, $scope.classes);
-            $scope.methods = errors.methods;
+            errors = DataProcessService.computeErrors(data_norm, $scope.classes,$scope.quantmethods,$scope.attribute_sets);
             $scope.dataloaded = true;
         });
 
