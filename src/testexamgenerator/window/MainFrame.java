@@ -64,7 +64,8 @@ public class MainFrame extends javax.swing.JFrame {
         jComboUnits.setModel(dcm);
         jComboUnits.setSelectedIndex(0);
         currentQuestion = 1;
-        editingQuestion = ((Unit)jComboUnits.getSelectedItem()).getSortedQuestions().get(0);
+        if (((Unit)jComboUnits.getSelectedItem()).getSortedQuestions()!=null)
+            editingQuestion = ((Unit)jComboUnits.getSelectedItem()).getSortedQuestions().get(0);
     }
 
     private void updateCounters()
