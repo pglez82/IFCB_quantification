@@ -64,7 +64,16 @@ public class MainFrame extends javax.swing.JFrame {
         jComboUnits.setModel(dcm);
         jComboUnits.setSelectedIndex(0);
         currentQuestion = 1;
-        editingQuestion = ((Unit)jComboUnits.getSelectedItem()).getSortedQuestions().get(0);
+        if (((Unit)jComboUnits.getSelectedItem()).getSortedQuestions().size()>0)
+        {
+            editingQuestion = ((Unit)jComboUnits.getSelectedItem()).getSortedQuestions().get(0);
+            currentQuestion = 1;
+        }
+        else
+        {
+            editingQuestion = null;
+            currentQuestion = 0;
+        }
     }
 
     private void updateCounters()
@@ -600,6 +609,9 @@ public class MainFrame extends javax.swing.JFrame {
             showSaveAsDialog();
         jButtonSaveQuestion.setBackground(null);
         jButtonSaveQuestion.setEnabled(false);
+        jButtonNewQuestion.setEnabled(true);
+        if (unit.getSortedQuestions().size()>0)
+            jButtonDeleteQuestion.setEnabled(true);
     }//GEN-LAST:event_jButtonSaveQuestionActionPerformed
 
     private void jButtonDeleteQuestionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeleteQuestionActionPerformed
@@ -625,6 +637,7 @@ public class MainFrame extends javax.swing.JFrame {
         for (Component component : questionComponents)
             component.setEnabled(true);
         jButtonSaveQuestion.setEnabled(true);
+        jButtonNewQuestion.setEnabled(false);
         jButtonSaveQuestion.setBackground(Color.green);
         updateCounters();
     }
