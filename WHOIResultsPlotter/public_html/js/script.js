@@ -7,7 +7,7 @@ app.service('DataLoadService', ['$q', function ($q)
     {
         /*
          * Loads the data using the promise pattern. One promise for each csv (one
-         * for each class and for each attribute set) 
+         * for each class and for each attribute set)
          */
         this.loadData = function (classes, attribute_sets, quant_methods, progressCallBack)
         {
@@ -161,24 +161,24 @@ app.service('DataProcessService', function ()
         {
             ae[cl] = {};
             re[cl] = {};
-            
+
             //We use map because we want to preserve order in properties
             ae[cl].methods = {};
             re[cl].methods = {};
-            
-            
+
+
             //Initialize error values
             for (i=0;i<quant_methods.length;i++)
             {
                 ae[cl].methods[quant_methods[i]] = {};
-                re[cl].methods[quant_methods[i]] = {}; 
+                re[cl].methods[quant_methods[i]] = {};
                 for (j=0;j<attribute_sets.length;j++)
                 {
                     ae[cl].methods[quant_methods[i]][attribute_sets[j]]=0;
                     re[cl].methods[quant_methods[i]][attribute_sets[j]]=0;
                 }
             }
-            
+
             ae_min_error = Number.MAX_VALUE;
             re_min_error = Number.MAX_VALUE;
 
@@ -187,7 +187,7 @@ app.service('DataProcessService', function ()
             {
                 method = dat[cl][i].method;
                 set = dat[cl][i].set;
-                
+
                 ae[cl].methods[method][set] = 0;
                 re[cl].methods[method][set] = 0;
 
@@ -330,7 +330,7 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             };
         }
 
-        $scope.showBestMethod = function ()
+        /*$scope.showBestMethod = function ()
         {
             for (var i = 0; i < $scope.data.length; i++)
             {
@@ -339,6 +339,6 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
                 else
                     $scope.data[i].visible = 'legendonly';
             }
-        };
+        };*/
 
     }]);

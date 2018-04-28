@@ -27,25 +27,27 @@
                 <md-progress-circular md-mode="undeterminate" style="display:block"></md-progress-circular>
                 <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
             </div>
-            <div style="width: 400px;margin:auto;margin-top:25px" ng-show="dataloaded">
-                <md-input-container style="width:100%">
-                    <label>Plankton Class</label>
-                    <md-select ng-model="selectedClass" ng-change="selectOption()">
-                        <md-option><em>None</em></md-option>
-                        <md-option ng-repeat="x in classes" ng-value="x">
-                            {{x}}
-                        </md-option>
-                    </md-select>
-                </md-input-container>
+            <div style="width:500px;margin:auto;margin-top:25px" ng-show="dataloaded">
                 <md-card>
-                    <md-card-title>
+                    <md-card-title md-colors="::{backgroundColor: 'default-primary-200'}" layout=row layout-align="center center">
                         <md-card-title-text>
-                            <span class="md-primary">Select what you want to compare</span>
+                            <span class="md-primary">What do you want to compare?</span>
                         </md-card-title-text>
+                        <md-input-container style="width:200px">
+                            <label>Plankton Class</label>
+                            <md-select ng-model="selectedClass" ng-change="selectOption()">
+                                <md-option><em>None</em></md-option>
+                                <md-option ng-repeat="x in classes" ng-value="x">
+                                    {{x}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
                     </md-card-title>
-                    <md-card-content>
-                        <md-input-container style="width:100%">
-                            <md-radio-group ng-model="selectedComp" layout="row" ng-change="selectOption()">
+
+                    <md-card-content layout=row>
+
+                        <md-input-container layout=row>
+                            <md-radio-group ng-model="selectedComp" layout="row" flex="70" ng-change="selectOption()">
                                 <md-radio-button value="atts">
                                     Attribute sets
                                 </md-radio-button>
@@ -54,16 +56,16 @@
                                 </md-radio-button>
                             </md-radio-group>
                         </md-input-container>
-                        <md-input-container style="width:50%" ng-show="selectedComp === 'atts'">
-                            <label>Choose a method:</label>
+                        <md-input-container ng-show="selectedComp === 'atts'" flex="20 20">
+                            <label>Method</label>
                             <md-select ng-model="selectedMethod" ng-change="selectOption()">
                                 <md-option ng-repeat="x in quantmethods" ng-value="x">
                                     {{x}}
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <md-input-container style="width:50%" ng-show="selectedComp === 'meths'">
-                            <label>Choose an attribute set:</label>
+                        <md-input-container ng-show="selectedComp === 'meths'" flex="1 1">
+                            <label>Attribute set</label>
                             <md-select ng-model="selectedSet" ng-change="selectOption()">
                                 <md-option ng-repeat="x in attribute_sets" ng-value="x">
                                     {{x}}
@@ -112,7 +114,7 @@
                         </tr>
                         </tbody>
                     </table>
-                    
+
                 </md-table-container>
 
 
@@ -121,11 +123,11 @@
                 <div layout="row" layout-align="center center" style="width:100%;margin:auto;margin-top:15px;">
                     <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
 
-                    <md-button class="md-primary md-raised demo-menu-open-button"
+                    <!-- <md-button class="md-primary md-raised demo-menu-open-button"
                                ng-click="showBestMethod()">
                         <md-tooltip md-direction="top">Shows the method with the best AE error compared with the True prevalence. CC_NF method, is also showed used as baseline.</md-tooltip>
                         Show best method
-                    </md-button>
+                    </md-button> -->
                     <md-button class="md-primary md-raised demo-menu-open-button"
                                ng-click="resetChart()">
                         Reset
