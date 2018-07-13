@@ -22,7 +22,7 @@
 
         <script src="js/script.js"></script>
 
-        <section ng-controller="MyController" ng-init="init()">
+        <section ng-cloak ng-controller="MyController" ng-init="init()">
             <div layout="column" layout-align="center center" style="margin-top:50px" ng-hide="dataloaded">
                 <md-progress-circular md-mode="undeterminate" style="display:block"></md-progress-circular>
                 <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
@@ -75,12 +75,12 @@
                     </md-card-content>
                 </md-card>
             </div>
-            <div style="width: 100%;margin:auto;margin-top:15px">
+            <div style="width: 100%;margin:auto;margin-top:15px" ng-show="dataloaded">
                 <plotly plotly-data="data" plotly-layout="layout" plotly-options="options"></plotly>
 
             </div>
 
-            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="selectedClass">
+            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="dataloaded && selectedClass">
 
                 <md-table-container>
                     <table md-table style="text-align:left">
