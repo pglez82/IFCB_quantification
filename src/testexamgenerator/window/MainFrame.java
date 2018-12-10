@@ -47,6 +47,8 @@ public class MainFrame extends javax.swing.JFrame {
         questionComponents.add(jCheckBoxAnswer2);
         questionComponents.add(jCheckBoxAnswer3);
         questionComponents.add(jCheckBoxAnswer4);
+        questionComponents.add(jRadioButtonPractical);
+        questionComponents.add(jRadioButtonTheory);
         for (Component questionComponent : questionComponents)
             questionComponent.setEnabled(false);
         jButtonDeleteQuestion.setEnabled(false);
@@ -144,6 +146,8 @@ public class MainFrame extends javax.swing.JFrame {
             jCheckBoxAnswer2.removeActionListener(formChangeListener);
             jCheckBoxAnswer3.removeActionListener(formChangeListener);
             jCheckBoxAnswer4.removeActionListener(formChangeListener);
+            jRadioButtonTheory.removeActionListener(formChangeListener);
+            jRadioButtonPractical.removeActionListener(formChangeListener);
             for (Component component : questionComponents)
                 component.setEnabled(true);
             jTextAreaQuestionText.setText(question.getQuestionText());
@@ -156,6 +160,8 @@ public class MainFrame extends javax.swing.JFrame {
             jCheckBoxAnswer2.setSelected(listAnswers.get(1).isCorrect());
             jCheckBoxAnswer3.setSelected(listAnswers.get(2).isCorrect());
             jCheckBoxAnswer4.setSelected(listAnswers.get(3).isCorrect());
+            jRadioButtonTheory.setSelected(question.isTheory());
+            jRadioButtonPractical.setSelected(question.isPractical());
             
             jTextFieldAnswer1.getDocument().addDocumentListener(formChangeListener);
             jTextFieldAnswer2.getDocument().addDocumentListener(formChangeListener);
@@ -166,6 +172,8 @@ public class MainFrame extends javax.swing.JFrame {
             jCheckBoxAnswer2.addActionListener(formChangeListener);
             jCheckBoxAnswer3.addActionListener(formChangeListener);
             jCheckBoxAnswer4.addActionListener(formChangeListener);
+            jRadioButtonTheory.addActionListener(formChangeListener);
+            jRadioButtonPractical.addActionListener(formChangeListener);
         }
         else
         {
@@ -180,6 +188,8 @@ public class MainFrame extends javax.swing.JFrame {
             jCheckBoxAnswer2.setSelected(false);
             jCheckBoxAnswer3.setSelected(false);
             jCheckBoxAnswer4.setSelected(false);
+            jRadioButtonTheory.setSelected(false);
+            jRadioButtonPractical.setSelected(false);
         }
     }
     
@@ -196,6 +206,7 @@ public class MainFrame extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         jMenu6 = new javax.swing.JMenu();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jComboUnits = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         jButtonAddUnit = new javax.swing.JButton();
@@ -227,6 +238,8 @@ public class MainFrame extends javax.swing.JFrame {
         jLabelTotal = new javax.swing.JLabel();
         jButtonNext = new javax.swing.JButton();
         jButtonLast = new javax.swing.JButton();
+        jRadioButtonTheory = new javax.swing.JRadioButton();
+        jRadioButtonPractical = new javax.swing.JRadioButton();
         jMenuBar2 = new javax.swing.JMenuBar();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -375,6 +388,12 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jPanelButtons.add(jButtonLast);
 
+        buttonGroup1.add(jRadioButtonTheory);
+        jRadioButtonTheory.setText(bundle.getString("MainFrame.jRadioButtonTheory.text")); // NOI18N
+
+        buttonGroup1.add(jRadioButtonPractical);
+        jRadioButtonPractical.setText(bundle.getString("MainFrame.jRadioButtonPractical.text")); // NOI18N
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -382,6 +401,13 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButtonNewQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonDeleteQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonSaveQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -395,27 +421,27 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
-                            .addComponent(jTextFieldAnswer2)
-                            .addComponent(jTextFieldAnswer4, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jTextFieldAnswer3, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jTextFieldAnswer1, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jCheckBoxAnswer1)
-                                .addComponent(jCheckBoxAnswer2))
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jCheckBoxAnswer3, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jCheckBoxAnswer4, javax.swing.GroupLayout.Alignment.TRAILING))
-                            .addComponent(jButtonHtml, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButtonNewQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonDeleteQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonSaveQuestion, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jRadioButtonTheory)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jRadioButtonPractical)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE)
+                                    .addComponent(jTextFieldAnswer2)
+                                    .addComponent(jTextFieldAnswer4, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jTextFieldAnswer3, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jTextFieldAnswer1, javax.swing.GroupLayout.Alignment.TRAILING))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jCheckBoxAnswer1)
+                                        .addComponent(jCheckBoxAnswer2))
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jCheckBoxAnswer3, javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jCheckBoxAnswer4, javax.swing.GroupLayout.Alignment.TRAILING))
+                                    .addComponent(jButtonHtml, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap())
             .addComponent(jPanelButtons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -425,7 +451,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jPanelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 74, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -453,11 +479,15 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(jTextFieldAnswer4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7)))
                     .addComponent(jCheckBoxAnswer4))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonNewQuestion)
+                    .addComponent(jRadioButtonTheory)
+                    .addComponent(jRadioButtonPractical))
+                .addGap(7, 7, 7)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonSaveQuestion)
-                    .addComponent(jButtonDeleteQuestion))
+                    .addComponent(jButtonDeleteQuestion)
+                    .addComponent(jButtonNewQuestion))
                 .addGap(12, 12, 12))
         );
 
@@ -529,8 +559,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jComboUnits, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButtonAddUnit))
                 .addGap(12, 12, 12)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -603,6 +632,8 @@ public class MainFrame extends javax.swing.JFrame {
         editingQuestion.addAnswer(new Answer(jTextFieldAnswer2.getText(), jCheckBoxAnswer2.isSelected()));
         editingQuestion.addAnswer(new Answer(jTextFieldAnswer3.getText(), jCheckBoxAnswer3.isSelected()));
         editingQuestion.addAnswer(new Answer(jTextFieldAnswer4.getText(), jCheckBoxAnswer4.isSelected()));
+        editingQuestion.setTheory(jRadioButtonTheory.isSelected());
+        editingQuestion.setPractical(jRadioButtonPractical.isSelected());
 
         jLabelTotal.setText(Integer.toString(unit.getSortedQuestions().size()));
         if (BusinessLogic.saveToDisk()==false)
@@ -737,6 +768,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonAddUnit;
     private javax.swing.JButton jButtonDeleteQuestion;
     private javax.swing.JButton jButtonFirst;
@@ -773,6 +805,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemSaveAs;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelButtons;
+    private javax.swing.JRadioButton jRadioButtonPractical;
+    private javax.swing.JRadioButton jRadioButtonTheory;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextAreaQuestionText;
     private javax.swing.JTextField jTextFieldAnswer1;

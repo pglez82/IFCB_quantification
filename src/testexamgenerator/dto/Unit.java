@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import testexamgenerator.logic.exception.NotEnoughQuestionsException;
 
 /**
  *
@@ -48,18 +49,34 @@ public class Unit implements Serializable
         listQuestions.remove(questionIndex);
     }
     
-    public List<Question> getRandomQuestions(int numberOfQuestions)
+    public List<Question> getRandomQuestions(int numberOfQuestions,boolean theoryQuestions,boolean practicalQuestions) throws NotEnoughQuestionsException
     {
         Random random = new Random(System.currentTimeMillis());
         List<Question> questionList = new ArrayList<>();
-        while (questionList.size()<numberOfQuestions)
+        List<Question> candidateQuestions = new ArrayList<>();
+        for (Question question : listQuestions)
         {
-            Question question = listQuestions.get(random.nextInt(listQuestions.size()));
-            if (!questionList.contains(question))
-                questionList.add(question);
+            if (question.isPractical() && practicalQuestions)
+                candidateQuestions.add(question);
+            if (question.isTheory() && theoryQuestions)
+                candidateQuestions.add(question);
         }
-        
-        return questionList;
+        if (candidateQuestions.size()>=numberOfQuestions)
+        {
+            while (questionList.size()<numberOfQuestions)
+            {
+                Question question = candidateQuestions.get(random.nextInt(candidateQuestions.size()));
+                if (question.isPractical() == practicalQuestions && question.isTheory() == theoryQuestions)
+                    if (!questionList.contains(question))
+                        questionList.add(question);
+            }
+
+            return questionList;
+        }
+        else
+        {
+            throw new NotEnoughQuestionsException("Unit "+unitName+" needs "+numberOfQuestions+" questions but you only have "+candidateQuestions.size()+" questions.");
+        }
     }
     
     public List<Question> getSortedQuestions()

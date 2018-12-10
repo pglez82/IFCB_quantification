@@ -11,11 +11,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -24,6 +27,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import testexamgenerator.dto.Question;
 import testexamgenerator.dto.Subject;
 import testexamgenerator.dto.Unit;
+import testexamgenerator.logic.exception.NotEnoughQuestionsException;
 
 /**
  *
@@ -97,17 +101,24 @@ public class BusinessLogic {
      * @param listUnits only questions of this units are generated
      * @return
      */
-    private static List<Question> generateExam(int questionNumber, int[] listUnitsExam) {
+    private static List<Question> generateExam(int questionNumber, int[] listUnitsExam,boolean theoryQuestions,boolean practicalQuestions) throws NotEnoughQuestionsException {
         int questionsByUnit = questionNumber / listUnitsExam.length;
+        int mod = questionNumber % listUnitsExam.length;
         List<Question> questionList = new ArrayList<>();
         for (int unitIndex : listUnitsExam) {
             Unit unit = listUnits.get(unitIndex);
-            questionList.addAll(unit.getRandomQuestions(questionsByUnit));
+            int extra = 0;
+            if (mod>0) //Manage situation when division is not an int
+            {
+                extra=1;
+                mod--;
+            }
+            questionList.addAll(unit.getRandomQuestions(questionsByUnit+extra,theoryQuestions,practicalQuestions));
         }
         return questionList;
     }
 
-    public static boolean generateExamenToPdf(int questionNumber, int[] listUnitsExam, String fileName, String template, String subtitle) {
+    public static boolean generateExamenToPdf(int questionNumber, int[] listUnitsExam, String fileName, String template, String subtitle,boolean theoryQuestions,boolean practicalQuestions) throws NotEnoughQuestionsException {
         try {
             String ext = FileUtils.getFilenameExt(fileName);
             String dirName = fileName;
@@ -118,7 +129,7 @@ public class BusinessLogic {
             if (!directorio.exists()) {
                 directorio.mkdir();
             }
-            List<Question> listQuestions = generateExam(questionNumber, listUnitsExam);
+            List<Question> listQuestions = generateExam(questionNumber, listUnitsExam,theoryQuestions,practicalQuestions);
             JRDataSource dataSource = new JRBeanCollectionDataSource(listQuestions);
             JasperCompileManager.compileReportToFile(TEMPLATES_DIR + File.separator + template, "temp.jasper");
             JasperCompileManager.compileReportToFile(TEMPLATES_DIR + File.separator + "answer_subreport.jrxml", "answer_subreport.jasper");
@@ -139,10 +150,11 @@ public class BusinessLogic {
             File file2 = new File("answer_subreport.jasper");
             file2.delete();
             MCTestGenerator.generateMCTest(listQuestions, EXAMS_DIR + File.separator + dirName);
-        } catch (Throwable e) {
+        } catch (JRException ex) {
             return false;
-        }
+        } 
         return true;
+        
     }
 
     public static boolean addUnit(String unitString) {

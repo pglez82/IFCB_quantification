@@ -23,35 +23,42 @@ public class MCTestGenerator
 {
     private static final int QUESTION_PER_TABLE = 30;
     
-    public static void generateMCTest(List<Question> listQuestions,String dirName) throws Exception
+    public static boolean generateMCTest(List<Question> listQuestions,String dirName)
     {
-        int numTables;
-        if (listQuestions.size()>QUESTION_PER_TABLE)
-        {
-            numTables = listQuestions.size()/QUESTION_PER_TABLE;
-            if ((listQuestions.size()%QUESTION_PER_TABLE)!=0)
-                numTables++;
-        }
-        else
-            numTables=1;
-        
-        int questionsPerTable = listQuestions.size()/numTables;
-        int firstTableExtra = listQuestions.size()%numTables;
-        
-        TextDocument outputOdt;
-        outputOdt = TextDocument.newTextDocument(TextDocument.OdfMediaType.TEXT);
-        
-        for (int i=0;i<numTables;i++)
-        {
-            if (i==0)
-                createTable(outputOdt, listQuestions, 0,questionsPerTable+firstTableExtra-1);
+        try{
+            int numTables;
+            if (listQuestions.size()>QUESTION_PER_TABLE)
+            {
+                numTables = listQuestions.size()/QUESTION_PER_TABLE;
+                if ((listQuestions.size()%QUESTION_PER_TABLE)!=0)
+                    numTables++;
+            }
             else
-                createTable(outputOdt, listQuestions, (i*questionsPerTable)+firstTableExtra,((i+1)*questionsPerTable)+firstTableExtra-1);
-            outputOdt.addParagraph("");
-            outputOdt.addParagraph("");
-        
+                numTables=1;
+
+            int questionsPerTable = listQuestions.size()/numTables;
+            int firstTableExtra = listQuestions.size()%numTables;
+
+            TextDocument outputOdt;
+            outputOdt = TextDocument.newTextDocument(TextDocument.OdfMediaType.TEXT);
+
+            for (int i=0;i<numTables;i++)
+            {
+                if (i==0)
+                    createTable(outputOdt, listQuestions, 0,questionsPerTable+firstTableExtra-1);
+                else
+                    createTable(outputOdt, listQuestions, (i*questionsPerTable)+firstTableExtra,((i+1)*questionsPerTable)+firstTableExtra-1);
+                outputOdt.addParagraph("");
+                outputOdt.addParagraph("");
+
+            }
+            outputOdt.save(dirName+File.separator+"plantillamctest.odt");
+            return true;
         }
-        outputOdt.save(dirName+File.separator+"plantillamctest.odt");
+        catch(Exception e)
+        {
+            return false;
+        }
     }
     
     

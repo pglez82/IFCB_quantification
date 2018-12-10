@@ -14,6 +14,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import testexamgenerator.dto.Unit;
 import testexamgenerator.logic.BusinessLogic;
+import testexamgenerator.logic.exception.NotEnoughQuestionsException;
 
 /**
  *
@@ -75,6 +76,8 @@ public class JDialogGenerateExam extends javax.swing.JDialog {
         jComboBoxTemplates = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
         jTextFieldSubtitle = new javax.swing.JTextField();
+        jCheckBoxTheory = new javax.swing.JCheckBox();
+        jCheckBoxPractical = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -98,6 +101,12 @@ public class JDialogGenerateExam extends javax.swing.JDialog {
         jLabel3.setText(bundle.getString("JDialogGenerateExam.jLabel3.text")); // NOI18N
 
         jLabel4.setText(bundle.getString("JDialogGenerateExam.jLabel4.text")); // NOI18N
+
+        jCheckBoxTheory.setSelected(true);
+        jCheckBoxTheory.setText(bundle.getString("JDialogGenerateExam.jCheckBoxTheory.text")); // NOI18N
+
+        jCheckBoxPractical.setSelected(true);
+        jCheckBoxPractical.setText(bundle.getString("JDialogGenerateExam.jCheckBoxPractical.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -126,14 +135,19 @@ public class JDialogGenerateExam extends javax.swing.JDialog {
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jTextFieldSubtitle, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jComboBoxTemplates, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                    .addComponent(jComboBoxTemplates, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jCheckBoxTheory)
+                        .addGap(18, 18, 18)
+                        .addComponent(jCheckBoxPractical)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
@@ -150,10 +164,16 @@ public class JDialogGenerateExam extends javax.swing.JDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jTextFieldSubtitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonGenerar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jCheckBoxTheory)
+                            .addComponent(jCheckBoxPractical))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButtonGenerar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         pack();
@@ -179,13 +199,24 @@ public class JDialogGenerateExam extends javax.swing.JDialog {
         }
         
         String template = (String)jComboBoxTemplates.getSelectedItem();
-        if (BusinessLogic.generateExamenToPdf(numQuestions, jListUnits.getSelectedIndices(), fileName, template,jTextFieldSubtitle.getText()))
-            JOptionPane.showMessageDialog(this, "Exam generation OK");
+        boolean theory = jCheckBoxTheory.isSelected();
+        boolean practical = jCheckBoxPractical.isSelected();
+        try
+        {
+            if (BusinessLogic.generateExamenToPdf(numQuestions, jListUnits.getSelectedIndices(), fileName, template,jTextFieldSubtitle.getText(),theory,practical))
+                JOptionPane.showMessageDialog(this, "Exam generation OK");
+        }
+        catch (NotEnoughQuestionsException e)
+        {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
         
     }//GEN-LAST:event_jButtonGenerarActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonGenerar;
+    private javax.swing.JCheckBox jCheckBoxPractical;
+    private javax.swing.JCheckBox jCheckBoxTheory;
     private javax.swing.JComboBox jComboBoxTemplates;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

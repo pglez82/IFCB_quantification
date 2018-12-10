@@ -23,6 +23,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Question implements Serializable
 {
     private String questionText;
+    private boolean practical;
+    private boolean theory;
+    
     @XmlElement(name = "answers")
     private List<Answer> answerList;
 
@@ -41,6 +44,22 @@ public class Question implements Serializable
         answerList.add(answer);
     }
 
+    public boolean isPractical() {
+        return practical;
+    }
+
+    public void setPractical(boolean practical) {
+        this.practical = practical;
+    }
+
+    public boolean isTheory() {
+        return theory;
+    }
+
+    public void setTheory(boolean theory) {
+        this.theory = theory;
+    }
+    
     public String getQuestionText() {
         return questionText;
     }
