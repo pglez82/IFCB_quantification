@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <link rel="stylesheet" href="css/angular-material.min.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+        <link rel="stylesheet" href="css/md-data-table.min.css"  type="text/css"/>
+    </head>
+
+    <body ng-app="MyApp" layout="column">
+
+        <!-- Angular Material Dependencies -->
+        <script src="js/lib/angular/angular.min.js"></script>
+        <script src="js/lib/angular/angular-animate.min.js"></script>
+        <script src="js/lib/angular/angular-aria.min.js"></script>
+        <script src="js/lib/angular/angular-sanitize.min.js"></script>
+        <script src="js/lib/angular-material.min.js"></script>
+        <script src="js/lib/plotly-latest.min.js"></script>
+        <script src="js/lib/angular-plotly.js"></script>
+        <script src="js/lib/md-data-table.min.js"></script>
+
+        <script src="js/script.js"></script>
+
+        <section ng-cloak ng-controller="MyController" ng-init="init()">
+            <div layout="column" layout-align="center center" style="margin-top:50px" ng-hide="dataloaded">
+                <md-progress-circular md-mode="undeterminate" style="display:block"></md-progress-circular>
+                <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
+            </div>
+            <div style="width:500px;margin:auto;margin-top:25px" ng-show="dataloaded">
+                <md-card>
+                    <md-card-title md-colors="::{backgroundColor: 'default-primary-200'}" layout=row layout-align="center center">
+                        <md-card-title-text>
+                            <span class="md-primary">What do you want to compare?</span>
+                        </md-card-title-text>
+                        <md-input-container style="width:200px">
+                            <label>Plankton Class</label>
+                            <md-select ng-model="selectedClass" ng-change="selectOption()">
+                                <md-option><em>None</em></md-option>
+                                <md-option ng-repeat="x in classes" ng-value="x">
+                                    {{x}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </md-card-title>
+
+                    <md-card-content layout=row>
+
+                        <md-input-container layout=row>
+                            <md-radio-group ng-model="selectedComp" layout="row" flex="70" ng-change="selectOption()">
+                                <md-radio-button value="atts">
+                                    Attribute sets
+                                </md-radio-button>
+                                <md-radio-button value="meths">
+                                    Quantification Methods
+                                </md-radio-button>
+                            </md-radio-group>
+                        </md-input-container>
+                        <md-input-container ng-show="selectedComp === 'atts'" flex="20 20">
+                            <label>Method</label>
+                            <md-select ng-model="selectedMethod" ng-change="selectOption()">
+                                <md-option ng-repeat="x in quantmethods" ng-value="x">
+                                    {{x}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container ng-show="selectedComp === 'meths'" flex="1 1">
+                            <label>Attribute set</label>
+                            <md-select ng-model="selectedSet" ng-change="selectOption()">
+                                <md-option ng-repeat="x in attribute_sets" ng-value="x">
+                                    {{x}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </md-card-content>
+                </md-card>
+            </div>
+            <div style="width: 100%;margin:auto;margin-top:15px" ng-show="dataloaded">
+                <plotly plotly-data="data" plotly-layout="layout" plotly-options="options"></plotly>
+
+            </div>
+
+            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="dataloaded && selectedClass">
+
+                <md-table-container>
+                    <table md-table style="text-align:left">
+                        <thead md-head>
+                            <tr>
+                                <th></th>
+                                <th colspan="7" style="text-align: center">Absolute Errors</th>
+                                <th colspan="7" style="text-align: center">Relative Absolute Errors</th>
+                            </tr>
+                            <tr><!--this is your header row -->
+                                <th></th>
+                                <th ng-repeat="qm in quantmethods" style="padding:0px;text-align: center" md-numeric>
+                                    {{qm}}<!-- this is a header section, you can repeat here or use it as a title -->
+                                </th>
+                                <th></th>
+                                <th ng-repeat="qm in quantmethods" style="padding:0px;text-align: center" md-numeric>
+                                    {{qm}}<!-- this is a header section, you can repeat here or use it as a title -->
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr md-row ng-repeat="set in attribute_sets"><!-- repeat the rows -->
+                            <td md-cell style="border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;">{{set}}</td>
+                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_ae.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                                {{errors_ae.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
+                            </td>
+                            <td md-cell style="padding-right: 3px;border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;"></td>
+                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_re.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                                {{errors_re.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </md-table-container>
+
+
+
+
+                <div layout="row" layout-align="center center" style="width:100%;margin:auto;margin-top:15px;">
+                    <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
+
+                    <!-- <md-button class="md-primary md-raised demo-menu-open-button"
+                               ng-click="showBestMethod()">
+                        <md-tooltip md-direction="top">Shows the method with the best AE error compared with the True prevalence. CC_NF method, is also showed used as baseline.</md-tooltip>
+                        Show best method
+                    </md-button> -->
+                    <md-button class="md-primary md-raised demo-menu-open-button"
+                               ng-click="resetChart()">
+                        Reset
+                    </md-button>
+
+                    <md-button class="md-primary md-raised" ng-click="showInfoDialog($event)">
+                        Help
+                    </md-button>
+                </div>
+            </div>
+        </section>
+    </body>
+
+</html>

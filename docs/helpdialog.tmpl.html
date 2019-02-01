@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+
+<md-dialog aria-label="Mango (Fruit)">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>WHOI Quantification Results</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="cancel()">
+          <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+          <h3>Quantification Methods</h3>
+        <p>In the chart we can compare the results for each of the methods tested. Each method tries to predict the prevalence
+            for each class in all the files used for testing. Files are in the X-axis while prevalence is in the Y-axis. We have compared the following methods:</p>
+        <ul>
+            <li><b>CC:</b> Classify&Count</li>
+            <li><b>AC:</b> Adjusted Count</li>
+            <li><b>PCC:</b> Probabilistic Classify&Count</li>
+            <li><b>PAC:</b> Probabilistic Adjusted Count</li>
+            <li><b>HDy:</b> Method based on the Hellinger Distance</li>
+            <li><b>EM:</b> Method based on the EM algorithm</li>
+        </ul>
+        <h3>Features used</h3>
+        <p>Each of these methods has been tested using three different features sets:
+        <ul>
+            <li><b>NF:</b> Normal features downloaded from IFCB dashboard</li>
+            <li><b>DF_resnet18:</b> Attributes computed using resnet-18 trained for the ImageNet problem. No fine-tunning has been made to adapt the network to the plankton problem.</li>
+<!--            <li><b>DFFT_resnet18_partial:</b> Attributes computed using resnet-18 trained for the ImageNet problem. The difference with the DF aproach is that the network has been fine-tunned with plankton images. We have used 30.000 training images for the finetunning process.</li>-->
+            <li><b>DF_resnet34:</b>Attributes computed using resnet-18 trained for the ImageNet problem. No fine-tunning has been made to adapt the network to the plankton problem.</li>
+            <li><b>DFFT_resnet18_full:</b> Attributes computed using resnet-18 trained for the ImageNet problem. All training images were used for fine tunning (1/2 million).</li>
+            <li><b>DFFT_resnet34_full:</b> Same than before but using a network with 34 layers.</li>
+            <li><b>DFFT_resnet50_full:</b> Same than before but using a network with 50 layers. This network generates 2048 features instead of 512.</li>
+            <li><b>DFFT_resnet101_full:</b> Same than before but using a network with 101 layers.</li>
+        </ul>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="cancel()">
+       Close
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
+
