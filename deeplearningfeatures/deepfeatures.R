@@ -172,3 +172,26 @@ trainDeepFeat<-function(modelN,it=0,nCores=1,device=mx.gpu())
   model_deep<-train(x,y,method="svmLinear", trControl=trainControl(method="cv",index=list(index_train$V1)))
   save(model_deep,file=paste0("results/IFCB_SMALL_DEEP",modelN,".RData"))
 }
+
+#Makes a quick test using random forest as algorithm between normal features a deepfeatures
+quick_test<-function(n_examples)
+{
+  library(caret)
+  library(data.table)
+  library(doMC)
+  registerDoMC(cores = 10)
+  path_nf<-'../export/IFCB.csv'
+  path_df<-'features/resnet-34-30/deepfeatures.csv'
+  IFCB_NF<-fread(path_nf)
+  IFCB_DF<-fread(path_df)
+  set.seed(7)
+  subsample<-sample(nrow(IFCB_NF),n_examples)
+  IFCB_NF_SMALL<-IFCB_NF[subsample,]
+  IFCB_DF_SMALL<-IFCB_DF[subsample,]
+  y<-factor(IFCB_NF_SMALL$Class)
+  x_nf<-x<-IFCB_NF_SMALL[,c("Class","Sample","OriginalClass","roi_number","FunctionalGroup","Area_over_PerimeterSquared","Area_over_Perimeter","H90_over_Hflip","H90_over_H180","Hflip_over_H180","summedConvexPerimeter_over_Perimeter","rotated_BoundingBox_solidity"):=NULL]
+  model_nf<-train(x_nf,y,method="rf",trControl=trainControl(method="cv",allowParallel = TRUE))
+  save(model_nf,file = 'results/model_nf.RData')
+  model_df<-train(x_df,y,method="rf",trControl=trainControl(method="cv",allowParallel = TRUE))
+  save(model_df,file = 'results/model_df.RData')
+}
