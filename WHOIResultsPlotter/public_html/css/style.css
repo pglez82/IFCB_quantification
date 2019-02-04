@@ -7,6 +7,29 @@ select
    width: 240px;
 }
 
+md-card-title{
+    padding-top:0px !important;
+    padding-bottom:0px !important;
+}
+md-card-content{
+    padding-bottom:0px !important;
+}
+
+.error_set
+{
+    border-right: 3px rgba(0, 0, 0, 0.3) solid;
+}
+.error_number,.error_number_graph
+{
+    padding:0px !important;
+    text-align: center !important;
+    color:gray !important;
+}
+.error_number_graph
+{
+    color:black !important;
+}
+
 
 
 .contentdemoBasicUsage div.demo-content {

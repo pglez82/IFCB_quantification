@@ -229,11 +229,15 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
         var data_raw = {};
         var data_norm = {};
         var errors = {};
+        
+        var tracesShown=[];
+        
         $scope.selectedComp = 'atts';
         $scope.quantmethods = ['CC', 'AC', 'PCC', 'PAC', 'HDy', 'EM'];
         $scope.selectedMethod = 'CC';
         $scope.selectedSet = 'NF';
-
+        
+        
         DataLoadService.loadData($scope.classes, $scope.attribute_sets, $scope.quantmethods, function (percentage) {
             $scope.progress = Math.round(percentage);
         }).then(function (response) {
@@ -246,6 +250,8 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             //In data_raw we have an object with a property for each class. In each class we have all the traces.
             data_norm = DataProcessService.normalizeData(data_raw, $scope.classes);
             errors = DataProcessService.computeErrors(data_norm, $scope.classes,$scope.quantmethods,$scope.attribute_sets);
+            $scope.selectedClass = $scope.classes[0];
+            $scope.selectOption();
             $scope.dataloaded = true;
         });
 
@@ -255,7 +261,7 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             $scope.errors_re = errors.re[$scope.selectedClass];
 
         };
-
+        
         function makeplot(cl, normalized, selectedComp, selectedMethod, selectedSet) {
             if (normalized)
                 data_used = data_norm;
@@ -264,7 +270,8 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
 
             $scope.data = [];
             $scope.data.push(data_used[cl][0]);
-            $scope.layout = {xaxis: {title: 'File'}};
+            $scope.layout = {xaxis: {title: 'Sample'},
+                      yaxis: {title: 'Prevalence'}};
             //We have to take only the traces needed
             for (var i = 1; i < data_used[cl].length; i++)
             {
@@ -282,10 +289,64 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             //Assign colors
             var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
             for (var i = 0; i < $scope.data.length; i++)
-                $scope.data[i].line = {color: colors[i]}
+                $scope.data[i].line = {color: colors[i]};
+            $scope.colors = colors;
+            
+            $scope.cellStyles = initializeTableCellStyles(selectedComp, selectedMethod, selectedSet);
 
             $scope.options = {showLink: false, displayLogo: false};
+            /*$scope.plotlyEvents = function (graph){
+            graph.on('plotly_restyle', function(event){
+              if (event) {
+                if (event[0].visible === 'legendonly') {
+                    var index = tracesShown.indexOf(event[1][0]);
+                    if (index > -1)
+                        tracesShown.splice(index, 1);
+                }
+                if (event[0].visible === true)
+                    tracesShown.push(event[1][0]);
+                
+                $scope.cellStyles=updateTableCellStyles(selectedComp,selectedMethod,selectedSet,tracesShown);
+              }
+            });
+            
+          };*/
         }
+        
+        function initializeTableCellStyles(selectedComp, selectedMethod, selectedSet)
+        {
+            cellStyles={}
+            angular.forEach($scope.quantmethods, function (qm)
+            {
+                cellStyles[qm]={};
+                angular.forEach($scope.attribute_sets, function (set)
+                {
+                    if (selectedComp==='meths' && selectedSet === set)
+                        cellStyles[qm][set]='error_number_graph';
+                    else if (selectedComp==='atts' && selectedMethod === qm)
+                        cellStyles[qm][set]='error_number_graph';
+                    else
+                        cellStyles[qm][set]='error_number';
+                });
+            });
+            return cellStyles;
+        }
+        
+        /*function updateTableCellStyles(selectedComp, selectedMethod, selectedSet, tracesShown)
+        {
+            if (selectedComp==='atts')
+            {
+                for (i=0;i<$scope.attribute_sets.length;i++)
+                {
+                    if (tracesShown.includes(i))
+                        $scope.cellStyles[selectedMethod][$scope.attribute_sets[i-1]] = 'error_number';
+                    else
+                        $scope.cellStyles[selectedMethod][$scope.attribute_sets[i-1]] = 'error_number';
+                }
+            }
+            return $scope.cellStyles;    
+        }*/
+        
 
         $scope.resetChart = function () {
             for (var i = 0; i < $scope.data.length; i++)
