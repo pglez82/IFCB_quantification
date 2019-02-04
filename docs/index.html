@@ -9,7 +9,6 @@
     </head>
 
     <body ng-app="MyApp" layout="column">
-
         <!-- Angular Material Dependencies -->
         <script src="js/lib/angular/angular.min.js"></script>
         <script src="js/lib/angular/angular-animate.min.js"></script>
@@ -27,13 +26,13 @@
                 <md-progress-circular md-mode="undeterminate" style="display:block"></md-progress-circular>
                 <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
             </div>
-            <div style="width:500px;margin:auto;margin-top:25px" ng-show="dataloaded">
+            <div style="width:700px;margin:auto;margin-top:25px" ng-show="dataloaded">
                 <md-card>
                     <md-card-title md-colors="::{backgroundColor: 'default-primary-200'}" layout=row layout-align="center center">
-                        <md-card-title-text>
+                        <md-card-title-text flex="70">
                             <span class="md-primary">What do you want to compare?</span>
                         </md-card-title-text>
-                        <md-input-container style="width:200px">
+                        <md-input-container flex="30">
                             <label>Plankton Class</label>
                             <md-select ng-model="selectedClass" ng-change="selectOption()">
                                 <md-option><em>None</em></md-option>
@@ -45,9 +44,8 @@
                     </md-card-title>
 
                     <md-card-content layout=row>
-
-                        <md-input-container layout=row>
-                            <md-radio-group ng-model="selectedComp" layout="row" flex="70" ng-change="selectOption()">
+                        <md-input-container layout=row flex="70">
+                            <md-radio-group ng-model="selectedComp" layout="row"  ng-change="selectOption()">
                                 <md-radio-button value="atts">
                                     Attribute sets
                                 </md-radio-button>
@@ -56,7 +54,7 @@
                                 </md-radio-button>
                             </md-radio-group>
                         </md-input-container>
-                        <md-input-container ng-show="selectedComp === 'atts'" flex="20 20">
+                        <md-input-container ng-show="selectedComp === 'atts'" flex="30">
                             <label>Method</label>
                             <md-select ng-model="selectedMethod" ng-change="selectOption()">
                                 <md-option ng-repeat="x in quantmethods" ng-value="x">
@@ -64,7 +62,7 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <md-input-container ng-show="selectedComp === 'meths'" flex="1 1">
+                        <md-input-container ng-show="selectedComp === 'meths'" flex="30">
                             <label>Attribute set</label>
                             <md-select ng-model="selectedSet" ng-change="selectOption()">
                                 <md-option ng-repeat="x in attribute_sets" ng-value="x">
@@ -75,20 +73,22 @@
                     </md-card-content>
                 </md-card>
             </div>
-            <div style="width: 100%;margin:auto;margin-top:15px" ng-show="dataloaded">
-                <plotly plotly-data="data" plotly-layout="layout" plotly-options="options"></plotly>
+            
+            <div ng-show="dataloaded && selectedClass" flex="100">
+                <hr>
 
+                <span ng-show="selectedComp === 'atts'" style="display:block;padding:10px;text-align: center">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the method <strong>{{selectedMethod}}</strong><br/> You can now choose the attribute sets to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
+                <span ng-show="selectedComp === 'meths'" style="display:block;padding:10px;text-align: center">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the attribute set <strong>{{selectedSet}}</strong><br/> You can now choose the quantification methods to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
+                <hr>
             </div>
-
-            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:50px" ng-show="dataloaded && selectedClass">
-
-                <md-table-container>
+            
+            <md-table-container flex="90" style="margin:auto;margin-top:25px" ng-show="dataloaded && selectedClass">
                     <table md-table style="text-align:left">
                         <thead md-head>
                             <tr>
                                 <th></th>
-                                <th colspan="7" style="text-align: center">Absolute Errors</th>
-                                <th colspan="7" style="text-align: center">Relative Absolute Errors</th>
+                                <th colspan="7" style="text-align: center">Mean Absolute Errors</th>
+                                <th colspan="7" style="text-align: center">Mean Relative Absolute Errors</th>
                             </tr>
                             <tr><!--this is your header row -->
                                 <th></th>
@@ -103,12 +103,12 @@
                         </thead>
                         <tbody>
                         <tr md-row ng-repeat="set in attribute_sets"><!-- repeat the rows -->
-                            <td md-cell style="border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;">{{set}}</td>
-                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_ae.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                            <td md-cell style="border-right: 3px rgba(0, 0, 0, 0.3) solid">{{set}}</td>
+                            <td md-cell ng-class="cellStyles[qm][set]" ng-repeat="qm in quantmethods"  ng-style="errors_ae.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
                                 {{errors_ae.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
                             </td>
-                            <td md-cell style="padding-right: 3px;border-right: 3px rgba(0, 0, 0, 0.3) solid;!important;"></td>
-                            <td md-cell style="padding:0px;text-align: center" ng-repeat="qm in quantmethods" ng-style="errors_re.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
+                            <td md-cell style="padding-right: 3px;border-right: 3px rgba(0, 0, 0, 0.3) solid"></td>
+                            <td md-cell ng-class="cellStyles[qm][set]" ng-repeat="qm in quantmethods" ng-style="errors_re.best === '{{qm}}_{{set}}' && {'background-color':'GreenYellow'}"><!-- repeat the sections -->
                                 {{errors_re.methods[qm][set]|number:4}}<!-- here you can display i, j whatever else -->
                             </td>
                         </tr>
@@ -116,11 +116,13 @@
                     </table>
 
                 </md-table-container>
+            
+            <div id="graph" style="width: 100%;margin:auto;margin-top:15px" ng-show="dataloaded">
+                <plotly id="graph" plotly-data="data" plotly-layout="layout" plotly-options="options" plotly-events="plotlyEvents"></plotly>
+            </div>
 
-
-
-
-                <div layout="row" layout-align="center center" style="width:100%;margin:auto;margin-top:15px;">
+            <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:10px" ng-show="dataloaded && selectedClass">
+                <div layout="row" layout-align="center center" style="width:100%;margin:auto;">
                     <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
 
                     <!-- <md-button class="md-primary md-raised demo-menu-open-button"
