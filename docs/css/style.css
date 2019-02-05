@@ -15,11 +15,19 @@ md-card-content{
     padding-bottom:0px !important;
 }
 
+.help_message{
+    display:block;
+    padding:10px;
+    text-align: center;
+    font-size:small;
+}
+
+/***************Error table styles********************/
 .error_set
 {
     border-right: 3px rgba(0, 0, 0, 0.3) solid;
 }
-.error_number,.error_number_graph
+.error_number
 {
     padding:0px !important;
     text-align: center !important;
@@ -27,10 +35,44 @@ md-card-content{
 }
 .error_number_graph
 {
-    color:black !important;
+    padding:0px !important;
+    text-align: center !important;
 }
 
+.table_method_title{
+    text-align: center;
+    border-top:1px solid;
+    border-bottom:1px solid;
+    font-weight: normal;
+}
+.table_error_title{
+    text-align: center;
+    border-top:1px solid;
+}
 
+.dataset_title{
+    border-right:1px rgba(0,0,0,.12) solid;
+}
+
+.separator_cell{
+    padding-right: 3px !important;
+    border-right: 3px rgba(0,0,0,.12) solid;
+}
+
+.table_style
+{
+    padding:0;
+    max-width: 1000px;
+    margin:auto;
+    margin-top:50px
+}
+/***************Error table styles********************/
+
+.flecha
+{
+    background:url(../img/icons/right.png) center center no-repeat;
+    background-size: 40%;
+}
 
 .contentdemoBasicUsage div.demo-content {
   height: 450px; }

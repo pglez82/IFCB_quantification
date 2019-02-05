@@ -225,15 +225,32 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
 
         $scope.classes = ['Asterionellopsis', 'bad', 'Cerataulina', 'Ceratium', 'Chaetoceros', 'ciliate_mix', 'clusterflagellate', 'Corethron', 'Coscinodiscus', 'Cylindrotheca', 'DactFragCerataul', 'Dactyliosolen', 'detritus', 'Dictyocha', 'dino30', 'Dinobryon', 'Dinophysis', 'Ditylum', 'Ephemera', 'Eucampia', 'Euglena', 'Guinardia', 'Guinardia_flaccida', 'Guinardia_striata', 'Gyrodinium', 'kiteflagellates', 'Laboea', 'Lauderia', 'Leptocylindrus', 'Licmophora', 'mix', 'mix_elongated', 'Myrionecta', 'na', 'Odontella', 'Paralia', 'pennate', 'Phaeocystis', 'Pleurosigma', 'Prorocentrum', 'Pseudonitzschia', 'Pyramimonas', 'Rhizosolenia', 'Skeletonema', 'Stephanopyxis', 'Thalassionema', 'Thalassiosira', 'Thalassiosira_dirty', 'tintinnid'];
         //Extra 'DFFT_resnet18_partial',,
-        $scope.attribute_sets = ['NF','DF_resnet18','DF_resnet34','DFFT_resnet18_full', 'DFFT_resnet34_full', 'DFFT_resnet50_full','DFFT_resnet101_full'];
+        
         var data_raw = {};
         var data_norm = {};
         var errors = {};
+        //Colors for the traces
+        var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
         
+        //Traces that are shown in a moment in the chart
         var tracesShown=[];
         
         $scope.selectedComp = 'atts';
+        $scope.attribute_sets = ['NF','DF_resnet18','DF_resnet34','DFFT_resnet18_full', 'DFFT_resnet34_full', 'DFFT_resnet50_full','DFFT_resnet101_full'];
+        $scope.attribute_sets_tooltips=['Normal features downloaded from IFCB dashboard',
+                                        'Resnet 18-layers without finetuning',
+                                        'Resnet 34-layers without finetuning',
+                                        'Resnet 18-layers WITH finetuning',
+                                        'Resnet 34-layers WITH finetuning',
+                                        'Resnet 50-layers WITH finetuning',
+                                        'Resnet 101-layers WITH finetuning']
         $scope.quantmethods = ['CC', 'AC', 'PCC', 'PAC', 'HDy', 'EM'];
+        $scope.quantmethodstooltip = ['Classify & Count (baseline)',
+                                      'Adjusted Count',
+                                      'Probabilistic Classify & Count',
+                                      'Probabilistic Adjusted Count',
+                                      'Quantification Method based on Hellinger Distance',
+                                      'Quantification Method based on Earth Movers Distance'];
         $scope.selectedMethod = 'CC';
         $scope.selectedSet = 'NF';
         
@@ -262,6 +279,43 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
 
         };
         
+        /*
+         * This function choses the cell color depending on the traces selected.
+         * It also marks the best result in the table with a square
+         * @param {type} error
+         * @param {type} qm
+         * @param {type} set
+         * @returns {styles}
+         */
+        $scope.cellColor = function(error,qm,set)
+        {
+            styles = {};
+            if (error === 'ae' && typeof $scope.errors_ae !== 'undefined') 
+            {
+                if ((qm+"_"+set)===$scope.errors_ae.best)
+                    styles['border']='1px green solid';
+            }
+            if (error === 're' && typeof $scope.errors_re !== 'undefined') 
+            {
+                if ((qm+"_"+set)===$scope.errors_re.best)
+                    styles['border']='1px green solid';
+            }
+            
+            if (tracesShown.length>0)
+            {
+                if ($scope.selectedComp==='atts')
+                    index = $scope.attribute_sets.indexOf(set);
+                if ($scope.selectedComp==='meths')
+                    index = $scope.quantmethods.indexOf(qm);
+                
+                if (tracesShown.includes(index))
+                    styles.color=colors[index+1];
+            }
+            
+            return styles;
+        };
+        
+        
         function makeplot(cl, normalized, selectedComp, selectedMethod, selectedSet) {
             if (normalized)
                 data_used = data_norm;
@@ -287,7 +341,6 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             }
 
             //Assign colors
-            var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
             for (var i = 0; i < $scope.data.length; i++)
                 $scope.data[i].line = {color: colors[i]};
             $scope.colors = colors;
@@ -295,24 +348,32 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             $scope.cellStyles = initializeTableCellStyles(selectedComp, selectedMethod, selectedSet);
 
             $scope.options = {showLink: false, displayLogo: false};
-            /*$scope.plotlyEvents = function (graph){
-            graph.on('plotly_restyle', function(event){
-              if (event) {
-                if (event[0].visible === 'legendonly') {
-                    var index = tracesShown.indexOf(event[1][0]);
-                    if (index > -1)
-                        tracesShown.splice(index, 1);
-                }
-                if (event[0].visible === true)
-                    tracesShown.push(event[1][0]);
-                
-                $scope.cellStyles=updateTableCellStyles(selectedComp,selectedMethod,selectedSet,tracesShown);
-              }
-            });
-            
-          };*/
+            $scope.plotlyEvents = function (graph){
+                graph.on('plotly_restyle', function(event)
+                {
+                  if (event) {
+                    if (event[0].visible === 'legendonly') {
+                        var index = tracesShown.indexOf(event[1][0]);
+                        if (index > -1)
+                            tracesShown.splice(index, 1);
+                    }
+                    if (event[0].visible === true)
+                        tracesShown.push(event[1][0]-1);
+                    $scope.$apply(); //refresh styles
+                  }
+                });
+            };
+            $scope.resetChart();
         }
         
+        /*
+         * This function makes the numbers format differently depending on
+         * if they are shown in the plot or not
+         * @param {type} selectedComp
+         * @param {type} selectedMethod
+         * @param {type} selectedSet
+         * @returns {unresolved}
+         */
         function initializeTableCellStyles(selectedComp, selectedMethod, selectedSet)
         {
             cellStyles={}
@@ -332,22 +393,10 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             return cellStyles;
         }
         
-        /*function updateTableCellStyles(selectedComp, selectedMethod, selectedSet, tracesShown)
-        {
-            if (selectedComp==='atts')
-            {
-                for (i=0;i<$scope.attribute_sets.length;i++)
-                {
-                    if (tracesShown.includes(i))
-                        $scope.cellStyles[selectedMethod][$scope.attribute_sets[i-1]] = 'error_number';
-                    else
-                        $scope.cellStyles[selectedMethod][$scope.attribute_sets[i-1]] = 'error_number';
-                }
-            }
-            return $scope.cellStyles;    
-        }*/
-        
-
+        /*
+         * Chart to default value
+         * @returns {undefined}
+         */
         $scope.resetChart = function () {
             for (var i = 0; i < $scope.data.length; i++)
             {
@@ -356,7 +405,9 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
                 else
                     $scope.data[i].visible = 'legendonly';
             }
+            tracesShown=[]
         };
+        
         $scope.changeNormalized = function ()
         {
             makeplot($scope.selectedClass, $scope.normalized, $scope.selectedComp, $scope.selectedMethod, $scope.selectedSet);
