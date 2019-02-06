@@ -22,6 +22,11 @@ md-card-content{
     font-size:small;
 }
 
+md-radio-button ._md-container {
+top: 0px;
+transform: translateY(0);
+}
+
 /***************Error table styles********************/
 .error_set
 {

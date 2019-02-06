@@ -27,7 +27,7 @@
                 <md-progress-circular md-mode="determinate" value="{{progress}}" style="display:block"></md-progress-circular>
                 <p>Loading data... This may take a few seconds! ({{progress}}%)</p>
             </div>
-            <md-card-content layout="row" flex="80" style="margin:auto" ng-show="dataloaded && selectedClass">
+            <md-card-content layout="row" flex="85" style="margin:auto" ng-show="dataloaded && selectedClass">
                 <div flex="50" ng-show="dataloaded">
                     <md-card style="height:100%">
                         <md-card-title md-colors="::{backgroundColor: 'default-primary-100'}" layout=row layout-align="center center">
@@ -47,11 +47,11 @@
 
                         <md-card-content layout=row>
                             <md-input-container layout=row flex="70">
-                                <md-radio-group ng-model="selectedComp" layout="row"  ng-change="selectOption()">
-                                    <md-radio-button value="atts">
+                                <md-radio-group ng-model="selectedComp" layout="row" style="font-size:small" ng-change="selectOption()">
+                                    <md-radio-button style="margin-top:auto;margin-bottom:auto" value="atts">
                                         Attribute sets
                                     </md-radio-button>
-                                    <md-radio-button value="meths">
+                                    <md-radio-button style="margin-top:auto;margin-bottom:auto" value="meths">
                                         Quantification Methods
                                     </md-radio-button>
                                 </md-radio-group>
@@ -137,19 +137,19 @@
 
             <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:10px" ng-show="dataloaded && selectedClass">
                 <div layout="row" layout-align="center center" style="width:100%;margin:auto;">
-                    <md-checkbox ng-model="normalized" style="margin-bottom: 0;font-size: small" ng-change="changeNormalized()">Normalized Results</md-checkbox>
+                    <md-checkbox ng-model="normalized" style="margin-bottom: 0; padding-top:2px;font-size: small;margin-right:30px!important" ng-change="changeNormalized()">NORMALIZED RESULTS</md-checkbox>
 
                     <!-- <md-button class="md-primary md-raised demo-menu-open-button"
                                ng-click="showBestMethod()">
                         <md-tooltip md-direction="top">Shows the method with the best AE error compared with the True prevalence. CC_NF method, is also showed used as baseline.</md-tooltip>
                         Show best method
                     </md-button> -->
-                    <md-button class="md-primary md-raised demo-menu-open-button"
+                    <md-button class="md-raised demo-menu-open-button"
                                ng-click="resetChart()">
                         Reset
                     </md-button>
 
-                    <md-button class="md-primary md-raised" ng-click="showInfoDialog($event)">
+                    <md-button class="md-raised" ng-click="showInfoDialog($event)">
                         Help
                     </md-button>
                 </div>
