@@ -353,16 +353,30 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             $scope.plotlyEvents = function (graph){
                 graph.on('plotly_restyle', function(event)
                 {
-                  if (event) {
-                    if (event[0].visible === 'legendonly') {
-                        var index = tracesShown.indexOf(event[1][0]);
-                        if (index > -1)
-                            tracesShown.splice(index, 1);
+                    if (event) {
+                        if (event[1].length===1)//Single click
+                        {
+                            if (event[1][0]>0) //Avoid the true trace
+                            {
+                                if (event[0].visible === 'legendonly') {
+                                    var index = tracesShown.indexOf(event[1][0]-1);
+                                    if (index > -1)
+                                        tracesShown.splice(index, 1);
+                                }
+                                if (event[0].visible === true)
+                                    tracesShown.push(event[1][0]-1);
+                            }
+                        }
+                        else //Double click. Show only 1 trace, hide the rest
+                        {
+                            tracesShown = [];
+                            index = event[0].visible.indexOf(true);
+                            if (index > 0)
+                                tracesShown.push(event[1][index]-1)
+                        }
+                        $scope.$apply(); //refresh styles
                     }
-                    if (event[0].visible === true)
-                        tracesShown.push(event[1][0]-1);
-                    $scope.$apply(); //refresh styles
-                  }
+                    
                 });
             };
             $scope.resetChart();
