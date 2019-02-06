@@ -6,9 +6,10 @@
         <link rel="stylesheet" href="css/style.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
         <link rel="stylesheet" href="css/md-data-table.min.css"  type="text/css"/>
+        <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
     </head>
 
-    <body ng-app="MyApp" layout="column">
+    <body ng-app="MyApp" layout="column" style="font-family:Ubuntu Mono">
         <!-- Angular Material Dependencies -->
         <script src="js/lib/angular/angular.min.js"></script>
         <script src="js/lib/angular/angular-animate.min.js"></script>
@@ -84,8 +85,8 @@
                                 <span class="md-primary">Readme</span>
                             </md-card-title-text>
                         </md-card-title>
-                        <span ng-show="selectedComp === 'atts'" class="help_message">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the method <strong>{{selectedMethod}}</strong><br/> You can now choose the attribute sets to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
-                        <span ng-show="selectedComp === 'meths'" class="help_message">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the attribute set <strong>{{selectedSet}}</strong><br/> You can now choose the quantification methods to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
+                        <span ng-show="selectedComp === 'atts'" class="help_message">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the method <strong>{{selectedMethod}}</strong>.<br/><br/> You can now choose the attribute sets to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
+                        <span ng-show="selectedComp === 'meths'" class="help_message">You are browsing the results for the class <strong>{{selectedClass}}</strong> using the attribute set <strong>{{selectedSet}}</strong><br/><br/> You can now choose the quantification methods to compare in the chart below. Errors for all methods and attribute sets are shown in the following table.</span>
                     </md-card>
                 </div>
             </md-card-content>
@@ -136,7 +137,7 @@
 
             <div  class="demo-md-panel-content" style="width: 90%;margin:auto;margin-top:10px" ng-show="dataloaded && selectedClass">
                 <div layout="row" layout-align="center center" style="width:100%;margin:auto;">
-                    <md-checkbox ng-model="normalized" style="margin-bottom: 0" ng-change="changeNormalized()">Normalized Results</md-checkbox>
+                    <md-checkbox ng-model="normalized" style="margin-bottom: 0;font-size: small" ng-change="changeNormalized()">Normalized Results</md-checkbox>
 
                     <!-- <md-button class="md-primary md-raised demo-menu-open-button"
                                ng-click="showBestMethod()">

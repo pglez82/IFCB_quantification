@@ -325,7 +325,9 @@ app.controller('MyController', ['$scope', 'DataLoadService', 'DataProcessService
             $scope.data = [];
             $scope.data.push(data_used[cl][0]);
             $scope.layout = {xaxis: {title: 'Sample'},
-                      yaxis: {title: 'Prevalence'}};
+                             yaxis: {title: 'Prevalence'},
+                             font: {
+                                family: 'Ubuntu Mono',}};
             //We have to take only the traces needed
             for (var i = 1; i < data_used[cl].length; i++)
             {

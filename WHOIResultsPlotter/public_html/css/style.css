@@ -17,8 +17,8 @@ md-card-content{
 
 .help_message{
     display:block;
-    padding:10px;
-    text-align: center;
+    padding:25px;
+    text-align: left;
     font-size:small;
 }
 
@@ -29,14 +29,16 @@ md-card-content{
 }
 .error_number
 {
-    padding:0px !important;
-    text-align: center !important;
+    padding:3px 2px 3px 2px !important;
+    text-align: right !important;
     color:gray !important;
+    font-size:medium!important;
 }
 .error_number_graph
 {
-    padding:0px !important;
-    text-align: center !important;
+    padding:3px 2px 3px 2px !important;
+    text-align: right !important;
+    font-size:medium!important;
 }
 
 .table_method_title{
@@ -64,7 +66,7 @@ md-card-content{
     padding:0;
     max-width: 1000px;
     margin:auto;
-    margin-top:50px
+    margin-top:80px
 }
 /***************Error table styles********************/
 
