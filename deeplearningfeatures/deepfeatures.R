@@ -21,6 +21,38 @@ testPredict<-function()
   print(paste0("Predicted Top-class: ", synsets  [[max.idx]]))
 }
 
+#Use this function in order to clean the data directory. After executing this function you should get an image in the data dir
+#for each entry in IFCB.RData. If an image is missing it will show a warning. If the image does not appear in IFCB.RData it will get
+#deleted
+cleanUnusedImages<-function(imgPath="../../data",nCores=4,dry=TRUE)
+{
+  source('utils.R')
+  IFCB<-readRDS('../IFCB.RData')
+  print("Reading data from IFCB file...")
+  ifcbrows<-data.frame(computeImageFileNames(IFCB,imgPath=imgPath),stringsAsFactors = FALSE)
+  print("Done.")
+  print("Reding files from disk...")
+  existingfiles<-data.frame(list.files(path="../../data",recursive = TRUE,pattern = "*.png"),stringsAsFactors=FALSE)
+  existingfiles[,1]<-paste0(imgPath,'/',existingfiles[,1])
+  print("Done.")
+  print("Computing missing files:")
+  missing<-setdiff(ifcbrows[,1],existingfiles[,1])
+  print(missing)
+  readline(prompt="Press [enter] to continue")
+  print("Computing files that we do not need")
+  donotneed<-setdiff(existingfiles[,1],ifcbrows[,1])
+  print(donotneed)
+  save(donotneed,file="DONTNEED.RData")
+  print("Removing not needed files")
+  if (!dry)
+  {
+    for (i in 1:length(donotneed))
+    {
+      file.remove(donotneed[i])
+    }
+  }
+}
+
 #resize all images
 prepareImages<-function(imgPath="../../data",destPath="../../resized",nCores=12)
 {
