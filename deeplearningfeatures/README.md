@@ -38,7 +38,10 @@ python ~/mxnet/tools/im2rec.py ifcb_val.lst resized/test --pass-through True --n
 python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model models/resnet-18/resnet-18 --gpus 0 --data-train ../../ifcb_train.rec --data-val ../../ifcb_val.rec --load-epoch 0 --random-crop 0 --random-mirror 0 --num-epochs 10 --rgb-mean 0,0,0 --num-classes 24 --model-prefix models/resnet-18-10/resnet-18-10 --batch-size 32 --num-examples 23624 --layer-before-fullc 'flatten0'
 ```
 We have to be careful with num-classes and num-examples as they vary depending on the size of our finetuning image set. If we have used only the smaller (36918 examples), we only have 24 classes. If you have used the full training set (`extractFullDataSet()`), we will have 49 classes and 432203 examples.
+
 3. Compute the new features using the finetuned CNN (function `computeDeepFeatures()`).
+
 4. Test the new CNN and compare it against the off-the-shelf CNN. For that I have implemented two methods *trainRF()* and *trainDeepFeatures()*. For these methods we can use the 20% examples left appart in order to make a quick test on them.
 We have seen that this method outperforms traditional features (dashboard) and of-the-shelf CNN features by 2-3% accuracy in classification. Using this new network we can now compute the features for all the examples in the dataset in order to test them in our quantification algorithms.
+
 5. After verifying that they work, we can use the quantification library to make a full experiment.
