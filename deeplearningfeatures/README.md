@@ -40,5 +40,5 @@ python ~/mxnet/example/image-classification/fine-tune.py --pretrained-model mode
 We have to be careful with num-classes and num-examples as they vary depending on the size of our finetuning image set. If we have used only the smaller (36918 examples), we only have 24 classes. If you have used the full training set (`extractFullDataSet()`), we will have 49 classes and 432203 examples.
 3. Compute the new features using the finetuned CNN (function `computeDeepFeatures()`).
 4. Test the new CNN and compare it against the off-the-shelf CNN. For that I have implemented two methods *trainRF()* and *trainDeepFeatures()*. For these methods we can use the 20% examples left appart in order to make a quick test on them.
-We have seen that this method outperforms traditional features (dashboard) and of-the-shelf CNN features by 2-3% accuracy in classification. Using this new network we can know compute the features for all the examples in the dataset in order to test them in our quantification algorithms.
-4. After verifying that they work, we can use the quantification library to make a full experiment.
+We have seen that this method outperforms traditional features (dashboard) and of-the-shelf CNN features by 2-3% accuracy in classification. Using this new network we can now compute the features for all the examples in the dataset in order to test them in our quantification algorithms.
+5. After verifying that they work, we can use the quantification library to make a full experiment.
